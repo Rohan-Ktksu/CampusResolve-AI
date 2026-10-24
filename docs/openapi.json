@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "CampusResolve AI seed API contract",
-    "version": "0.1.0",
-    "description": "Proposed, not yet accepted by Atif/Sonia. Source paths and schemas, not implemented endpoints."
+    "title": "CampusResolve AI API contract",
+    "version": "0.2.0",
+    "description": "PROPOSED by Atif (backend); awaiting Sonia's review. Semantics in docs/API_CONTRACT.md. Accepted only when backend and frontend coordination hashes match this file."
   },
   "security": [
     {
