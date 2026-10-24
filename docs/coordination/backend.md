@@ -44,10 +44,41 @@ AI wiring: routes call `app.ai.analyze_complaint` and `app.ai.generate_admin_rep
   student submitted a Wi-Fi report → CMP-000002 row in PostgreSQL, rule-routed to IT → admin got rules-labelled AI suggestions and assigned IT Staff → IT staff marked IN_PROGRESS, then RESOLVED with a note and the verification checkbox → student submitted a 5★ rating (feedback row in DB) → `/dashboard/stats` via the proxy: resolved_count 1, avg_resolution_hours 0.03 (2 min 5 s actual).
 - Server log during the run: one non-2xx response, the expected 404 from `GET /complaints/2/feedback` before feedback existed.
 
+## Integration with Rohan's AI package (PR #2, origin/feature/ai 0cc4797), run by Atif on 2026-10-24
+
+Environment: Fedora Linux 44 (kernel 7.1.8), Python 3.14.6, PostgreSQL 16.15 in local podman. No paid service, no CI.
+
+Integration checkout: a temporary worktree with a detached HEAD, `git worktree add --detach ../cr-integration feature/backend` then `git merge origin/feature/ai`. The merge was clean (no conflicts) at 6edf8a8. main, feature/backend and feature/ai were not modified by the merge. I made no changes to Rohan's files.
+
+Commands and results (in the integration checkout):
+- `python -m unittest discover -s tests/ai` → Ran 19 tests, OK.
+- `python tests/ai/check_backend_adapter.py backend` → "Backend adapter checks passed … no silent fallback".
+- `python scripts/check_contract.py` → passed; `sha256sum docs/openapi.json` → d32af66a… (contract unchanged).
+- `cd backend && python -m pytest -v` → 17 passed: 8 existing tests plus 9 new live AI tests in backend/tests/test_ai_integration.py, using real routes against PostgreSQL:
+  - Wi-Fi complaint → Wi-Fi / Network category + IT department, `needs_review: false`, reason from Rohan's rules (not the generic fallback).
+  - Shuttle complaint → Transport category + Transport department.
+  - Unknown text and mixed Wi-Fi + water-leak text → `needs_review: true`, null category/department.
+  - analyze leaves the complaint and its history byte-for-byte unchanged.
+  - report sample_size equals insights, the summary uses Rohan's wording, and the hotspot evidence matches the real `by_location` sums.
+  - empty period → sample_size 0, no recommendations.
+  - both functions raising → 200 with the labelled backend fallback.
+  - student → 403 on analyze, insights and report.
+- On feature/backend alone: 8 passed and 9 skipped (AI tests skip until app.ai exports the functions).
+- Live HTTP (uvicorn from the integration checkout on the real demo DB): `POST /complaints/2/analyze` → category 1 / department 1, reason "Keyword rules matched the configured category 'Wi-Fi / Network'…". `POST /dashboard/insights/report` for today → Rohan's evidence-based summary with real counts (2 tickets, 1 resolved, 0.03 h). No 4xx/5xx in the server log.
+
+Transport configuration: added Transport department, Transport category (routes to Transport), and location "Main Gate / Bus Stop" to the seed. Config rows are now ensured idempotently on every startup with `INSERT … WHERE NOT EXISTS`, so existing demo databases gain them without touching tickets. Checked on the demo DB: before 2 tickets / 1 feedback / no Transport; after 2 tickets / 1 feedback / Transport department and category present. Two further restarts left the departments ID sequence unchanged.
+
+Review notes for Rohan (not blocking; I did not edit backend/app/ai/):
+1. Report ties sort by name, so "Uncategorized" can win a 1–1 tie and produce "Assess recurring Uncategorized complaints". Consider preferring configured categories or skipping Uncategorized for that recommendation.
+2. Singular counts read "1 reported tickets" in the report summary.
+3. Report `department_id` is always null by design; fine for the contract, but the admin must pick the team.
+
 ## Gaps / not yet verified
 
 - Not run on Windows yet; commands in backend/README.md are written for it but untested there.
 - Image upload and Insights/report were exercised by API tests, not through the UI in this run.
+- The AI + backend combination was not exercised through Sonia's UI; only through API tests and live HTTP.
+- Seed config is re-ensured on startup: if an admin renames a seeded department/category/location, the original name is re-created on the next restart. Deactivated ones stay deactivated.
 - Runtime schemas were compared by operation presence only, not field by field.
 - Image check uses file signatures, not full decoding.
 
