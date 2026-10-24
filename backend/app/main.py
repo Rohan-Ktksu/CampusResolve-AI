@@ -11,9 +11,11 @@ from psycopg import errors, sql
 
 from . import ai
 from .db import MAX_UPLOAD_BYTES, UPLOAD_DIR, get_conn, init_db, verify_password
-from .models import (AdminReport, AIAnalysis, AssignmentInput, Category, CategoryInput, Complaint, ComplaintCreate,
+from .models import (AdminReport, AIAnalysis, AssignmentInput, Category, CategoryInput, CommonIssue, CommonIssues, Complaint,
+                     ComplaintCreate,
                      ComplaintPatch, Department, DepartmentInput, Feedback, FeedbackInput, HistoryEntry, Insights,
-                     Institution, Location, LoginInput, LoginResult, ReportInput, Staff, Stats, StatusInput, User)
+                     Institution, Location, LoginInput, LoginResult, QueryInput, QueryPlan, QueryResult, ReportInput, Staff,
+                     Stats, StatusInput, User)
 
 _secret = os.environ.get('AUTH_SECRET', '')
 # Without a configured secret, tokens are only valid until the server restarts.
@@ -579,15 +581,18 @@ def generate_report(body: ReportInput, me=Depends(current_user), conn=Depends(ge
     departments = {r['id']: r['department_id'] for r in conn.execute(
         '''SELECT c.id, d.id AS department_id FROM categories c LEFT JOIN departments d ON d.id = c.default_department_id AND d.is_active
            WHERE c.institution_id = %s''', (me['institution_id'],)).fetchall()}
+    tickets = issue_tickets(conn, *cohort(me, body.from_, body.to))
+    report = None
     fn = getattr(ai, 'generate_admin_report', None)
     if fn:
         try:
-            report = AdminReport.model_validate(fn(Insights.model_validate(insights).model_dump(mode='json', by_alias=True)))
-            if all(r.department_id in (None, *departments.values()) for r in report.recommendations):
-                return report
+            candidate = AdminReport.model_validate(fn(Insights.model_validate(insights).model_dump(mode='json', by_alias=True),
+                                                      [t['text'] for t in tickets][:insights['sample_size']]))
+            if all(r.department_id in (None, *departments.values()) for r in candidate.recommendations):
+                report = candidate.model_dump(mode='json', by_alias=True)
         except Exception:
             pass  # invalid or failing AI output falls back to the labelled rules report
-    return rules_report(insights, departments)
+    return {**(report or rules_report(insights, departments)), 'common_issues': common_issues(conn, me, tickets)}
 
 
 MANUAL_REVIEW = {'category_id': None, 'suggested_department_id': None, 'priority': 'NORMAL',
@@ -613,6 +618,138 @@ def analyze_complaint(id: int, me=Depends(current_user), conn=Depends(get_conn))
         except Exception:
             pass  # never break the workflow on AI errors
     return MANUAL_REVIEW
+
+
+# ---------- admin chatbox queries ----------
+
+GROUP_EXPR = {
+    'category': "coalesce(cat.name, 'Uncategorized')", 'location': 'c.location', 'department': "coalesce(d.name, 'Unassigned')",
+    'status': 'c.status', 'priority': 'c.priority', 'day': "to_char(c.created_at, 'YYYY-MM-DD')",
+    'week': "to_char(date_trunc('week', c.created_at), 'YYYY-MM-DD')", 'month': "to_char(c.created_at, 'YYYY-MM')",
+}
+QUERY_FROM = '''FROM complaints c LEFT JOIN categories cat ON cat.id = c.category_id
+                LEFT JOIN departments d ON d.id = c.assigned_department_id'''
+OPEN_SQL = "c.status IN ('SUBMITTED', 'IN_PROGRESS')"
+GROUP_COLUMNS = [('label', None), ('tickets', 'Tickets'), ('unresolved', 'Unresolved'), ('resolved', 'Resolved'),
+                 ('avg_resolution_hours', 'Avg resolution (h)')]
+LIST_COLUMNS = [('ticket_number', 'Ticket'), ('title', 'Title'), ('category', 'Category'), ('location', 'Location'),
+                ('department', 'Department'), ('status', 'Status'), ('priority', 'Priority'), ('created_at', 'Created'),
+                ('age_hours', 'Age (h)')]
+
+
+def config_for_query(conn, me):
+    ins = me['institution_id']
+    cats = conn.execute('SELECT id, name FROM categories WHERE institution_id = %s AND is_active ORDER BY id', (ins,)).fetchall()
+    depts = conn.execute('SELECT id, name FROM departments WHERE institution_id = %s AND is_active ORDER BY id', (ins,)).fetchall()
+    locs = [r['name'] for r in conn.execute('SELECT name FROM locations WHERE institution_id = %s ORDER BY id', (ins,))]
+    return cats, depts, locs
+
+
+def run_query(conn, me, plan: QueryPlan) -> tuple[list[dict], dict, list[str]]:
+    if plan.from_ > plan.to or (plan.to - plan.from_).days + 1 > 366:
+        fail(422, 'Date range must run forwards and cover at most 366 days')
+    where = ['c.institution_id = %(ins)s', 'NOT c.archived', 'c.created_at >= %(start)s', 'c.created_at < %(end)s']
+    params = {'ins': me['institution_id'], 'start': plan.from_, 'end': plan.to + timedelta(days=1), 'limit': plan.limit}
+    for field, column in (('category_ids', 'c.category_id'), ('department_ids', 'c.assigned_department_id'),
+                          ('locations', 'c.location'), ('statuses', 'c.status'), ('priorities', 'c.priority')):
+        if getattr(plan, field):
+            where.append(f'{column} = ANY(%({field})s)')
+            params[field] = getattr(plan, field)
+    where = ' AND '.join(where)
+    totals = conn.execute(f'''SELECT count(*) AS tickets, count(*) FILTER (WHERE {OPEN_SQL}) AS unresolved,
+                                count(*) FILTER (WHERE c.status = 'RESOLVED') AS resolved,
+                                count(*) FILTER (WHERE {OPEN_SQL} AND c.priority = 'HIGH') AS high_open,
+                                {RESOLUTION_AVG} AS avg {QUERY_FROM} WHERE {where}''', params).fetchone()
+    totals['avg_resolution_hours'] = hours(totals.pop('avg'))
+    if plan.metric == 'list':
+        rows = conn.execute(f'''SELECT c.id, c.ticket_number, c.title, coalesce(cat.name, 'Uncategorized') AS category, c.location,
+                                     coalesce(d.name, 'Unassigned') AS department, c.status, c.priority, c.created_at,
+                                     round((extract(epoch FROM now() - c.created_at) / 3600)::numeric, 1)::float AS age_hours
+                              {QUERY_FROM} WHERE {where}
+                              ORDER BY c.created_at {'ASC' if plan.oldest_first else 'DESC'}, c.id LIMIT %(limit)s''', params).fetchall()
+    elif totals['tickets']:
+        group = GROUP_EXPR[plan.group_by] if plan.group_by else "'All matching tickets'"
+        order = '1' if plan.group_by in ('day', 'week', 'month') else \
+            'avg_resolution_hours DESC NULLS LAST, 1' if plan.metric == 'avg_resolution' else 'tickets DESC, 1'
+        rows = conn.execute(f'''SELECT {group} AS label, count(*) AS tickets, count(*) FILTER (WHERE {OPEN_SQL}) AS unresolved,
+                                     count(*) FILTER (WHERE c.status = 'RESOLVED') AS resolved,
+                                     round(({RESOLUTION_AVG})::numeric, 2)::float AS avg_resolution_hours
+                              {QUERY_FROM} WHERE {where} GROUP BY 1 ORDER BY {order} LIMIT %(limit)s''', params).fetchall()
+    else:
+        rows = []
+    return rows, totals, issue_tickets(conn, where, params)
+
+
+def cohort(me, start: date, end: date) -> tuple[str, dict]:
+    return ('c.institution_id = %(ins)s AND NOT c.archived AND c.created_at >= %(start)s AND c.created_at < %(end)s',
+            {'ins': me['institution_id'], 'start': start, 'end': end + timedelta(days=1)})
+
+
+def issue_tickets(conn, where: str, params: dict) -> list[dict]:
+    """Matching tickets' text and reporter roles, for NLTK text analysis."""
+    return conn.execute(f'''SELECT c.ticket_number, c.title || '. ' || c.description AS text, c.reporter_user_id AS reporter_id,
+                                   m.role AS reporter_role, c.location, coalesce(cat.name, 'Uncategorized') AS category,
+                                   c.status, c.created_at
+                            {QUERY_FROM} LEFT JOIN memberships m ON m.user_id = c.reporter_user_id AND m.institution_id = c.institution_id
+                            WHERE {where} ORDER BY c.id LIMIT 2000''', params).fetchall()
+
+
+def common_issues(conn, me, tickets: list[dict]) -> list[dict]:
+    fn = getattr(ai, 'find_common_issues', None)
+    if not fn or not tickets:
+        return []
+    locations = [r['name'] for r in conn.execute('SELECT name FROM locations WHERE institution_id = %s', (me['institution_id'],))]
+    try:
+        return [CommonIssue.model_validate(i).model_dump(mode='json') for i in fn(tickets, locations)]
+    except Exception:
+        return []  # common issues are optional; never break the report or chat on them
+
+
+@api.get('/dashboard/common-issues', response_model=CommonIssues)
+def dashboard_common_issues(from_: date = Query(alias='from'), to: date = Query(),
+                            me=Depends(current_user), conn=Depends(get_conn)):
+    need(me, *OPS)
+    if from_ > to or (to - from_).days + 1 > 366:
+        fail(422, 'Date range must run forwards and cover at most 366 days')
+    tickets = issue_tickets(conn, *cohort(me, from_, to))
+    return {'period': {'from': from_, 'to': to}, 'sample_size': len(tickets),
+            'issues': common_issues(conn, me, tickets), 'source': 'nlp'}
+
+
+def filter_labels(plan: QueryPlan, cats, depts) -> list[str]:
+    cat_names, dept_names = {r['id']: r['name'] for r in cats}, {r['id']: r['name'] for r in depts}
+    return ([cat_names.get(i, f'Category #{i}') for i in plan.category_ids]
+            + [dept_names.get(i, f'Department #{i}') + ' dept' for i in plan.department_ids]
+            + plan.locations + [s.replace('_', ' ').lower() for s in plan.statuses]
+            + [f'{p.lower()} priority' for p in plan.priorities])
+
+
+@api.post('/dashboard/query', response_model=QueryResult)
+def dashboard_query(body: QueryInput, me=Depends(current_user), conn=Depends(get_conn)):
+    need(me, *OPS)
+    cats, depts, locs = config_for_query(conn, me)
+    plan, warnings = body.plan, []
+    if plan is None:
+        try:
+            parsed = ai.parse_query(body.text, cats, depts, locs)
+            plan, warnings = QueryPlan.model_validate(parsed['plan']), list(parsed['warnings'])
+        except Exception:
+            # never break the dashboard on parser errors; fall back to recent totals
+            today = date.today()
+            plan = QueryPlan.model_validate({'from': today - timedelta(days=29), 'to': today})
+            warnings = ['Could not interpret the question; showing totals for the last 30 days.']
+    rows, totals, tickets = run_query(conn, me, plan)
+    try:
+        summary, suggestions = ai.describe_result(plan.model_dump(mode='json', by_alias=True), totals, rows,
+                                                  [t['text'] for t in tickets], filter_labels(plan, cats, depts))
+        source = 'nlp'
+    except Exception:
+        summary, suggestions, source = f"{totals['tickets']} tickets matched.", [], 'rules'
+    columns = LIST_COLUMNS if plan.metric == 'list' else \
+        [(k, v or (plan.group_by or 'scope').capitalize()) for k, v in GROUP_COLUMNS]
+    return {'query': body.text, 'plan': plan, 'columns': [{'key': k, 'label': v} for k, v in columns], 'rows': rows,
+            'summary': summary, 'suggestions': suggestions, 'common_issues': common_issues(conn, me, tickets),
+            'warnings': warnings, 'source': source}
 
 
 app.include_router(api)

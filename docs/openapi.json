@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "CampusResolve AI API contract",
-    "version": "0.2.0",
-    "description": "PROPOSED by Atif (backend); awaiting Sonia's review. Semantics in docs/API_CONTRACT.md. Accepted only when backend and frontend coordination hashes match this file."
+    "version": "0.3.0",
+    "description": "v0.3 PROPOSED by Rohan (repository owner/lead) on top of the frozen v0.2: adds POST /dashboard/query, GET /dashboard/common-issues, AdminReport.common_issues and source 'nlp'. Semantics in docs/API_CONTRACT.md. Accepted only when backend and frontend coordination hashes match this file."
   },
   "security": [
     {
@@ -2440,6 +2440,172 @@
           }
         }
       }
+    },
+    "/api/v1/dashboard/query": {
+      "post": {
+        "operationId": "dashboard_query",
+        "summary": "Admin/coordinator chatbox: English question or edited plan -> report table, summary, suggestions, common issues",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Workflow conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/common-issues": {
+      "get": {
+        "operationId": "dashboard_common_issues",
+        "summary": "Admin/coordinator: common issues grouped from complaint descriptions in a created_at range",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonIssues"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Workflow conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3233,6 +3399,7 @@
             "type": "string",
             "enum": [
               "rules",
+              "nlp",
               "local_model"
             ]
           },
@@ -3484,6 +3651,7 @@
             "type": "string",
             "enum": [
               "rules",
+              "nlp",
               "local_model"
             ]
           },
@@ -3495,6 +3663,13 @@
             "items": {
               "$ref": "#/components/schemas/Recommendation"
             }
+          },
+          "common_issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonIssue"
+            },
+            "description": "Defaults to an empty list."
           }
         },
         "required": [
@@ -3506,6 +3681,381 @@
           "recommendations"
         ],
         "additionalProperties": false
+      },
+      "QueryPlan": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string",
+            "enum": [
+              "count",
+              "avg_resolution",
+              "list"
+            ],
+            "default": "count"
+          },
+          "group_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "category",
+                  "location",
+                  "department",
+                  "status",
+                  "priority",
+                  "day",
+                  "week",
+                  "month"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "category_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxItems": 50,
+            "default": []
+          },
+          "department_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxItems": 50,
+            "default": []
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "maxItems": 50,
+            "default": []
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "SUBMITTED",
+                "IN_PROGRESS",
+                "RESOLVED",
+                "REJECTED"
+              ]
+            },
+            "maxItems": 4,
+            "default": []
+          },
+          "priorities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "NORMAL",
+                "HIGH"
+              ]
+            },
+            "maxItems": 3,
+            "default": []
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 50
+          },
+          "oldest_first": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "additionalProperties": false,
+        "description": "Allow-listed admin query. Range must run forwards and cover at most 366 days."
+      },
+      "QueryInput": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QueryPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "description": "Send exactly one of text (English question) or plan (edited filters)."
+      },
+      "QueryColumn": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label"
+        ],
+        "additionalProperties": true
+      },
+      "QuerySuggestion": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "next_step": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "evidence",
+          "next_step"
+        ],
+        "additionalProperties": true
+      },
+      "IssueLocation": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "location",
+          "count"
+        ],
+        "additionalProperties": true
+      },
+      "CommonIssue": {
+        "type": "object",
+        "properties": {
+          "issue": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "times_reported": {
+            "type": "integer",
+            "minimum": 2
+          },
+          "reporters": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "student_reporters": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "open": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "category": {
+            "type": "string"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssueLocation"
+            }
+          },
+          "first_reported": {
+            "type": "string",
+            "format": "date"
+          },
+          "last_reported": {
+            "type": "string",
+            "format": "date"
+          },
+          "ticket_numbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "issue",
+          "summary",
+          "times_reported",
+          "reporters",
+          "student_reporters",
+          "open",
+          "category",
+          "locations",
+          "first_reported",
+          "last_reported",
+          "ticket_numbers",
+          "suggestions"
+        ],
+        "additionalProperties": true,
+        "description": "Tickets whose own wording shares a problem phrase. reporters/student_reporters count distinct reporting accounts."
+      },
+      "CommonIssues": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "sample_size": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonIssue"
+            }
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "rules",
+              "nlp",
+              "local_model"
+            ]
+          }
+        },
+        "required": [
+          "period",
+          "sample_size",
+          "issues",
+          "source"
+        ],
+        "additionalProperties": true
+      },
+      "QueryResult": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "plan": {
+            "$ref": "#/components/schemas/QueryPlan"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryColumn"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Keyed by columns[].key; list rows also carry id."
+          },
+          "summary": {
+            "type": "string"
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuerySuggestion"
+            }
+          },
+          "common_issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommonIssue"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "rules",
+              "nlp",
+              "local_model"
+            ]
+          }
+        },
+        "required": [
+          "query",
+          "plan",
+          "columns",
+          "rows",
+          "summary",
+          "suggestions",
+          "common_issues",
+          "warnings",
+          "source"
+        ],
+        "additionalProperties": true
       },
       "Error": {
         "type": "object",
