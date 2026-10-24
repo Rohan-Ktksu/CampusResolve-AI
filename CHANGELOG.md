@@ -22,6 +22,7 @@ PRs [#7](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/7) (merge `26f7db1
 |---|---|
 | Vercel project | `campusresolve-ai` (account `rohansai`, Hobby) |
 | Vercel production branch | `main` (every merge redeploys automatically) |
+| Live URL | https://campusresolve-ai-sigma.vercel.app (verified 2026-10-24 after #8) |
 | Neon project | `campusresolve` (`bold-sunset-29788383`), AWS Singapore, PostgreSQL 16, Free |
 | Settings in Vercel | `DATABASE_URL`, `AUTH_SECRET` (both encrypted), `MAX_UPLOAD_BYTES=4194304` |
 
