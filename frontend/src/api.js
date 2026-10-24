@@ -239,5 +239,13 @@ export const api = {
     request('/dashboard/insights/report', {
       method: 'POST',
       body: JSON.stringify({ from: fromDate, to: toDate })
+    }),
+  getCommonIssues: (fromDate, toDate) =>
+    request(`/dashboard/common-issues?from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}`),
+  // Admin chatbox: send { text } for a new question or { plan } to re-run edited filters
+  askDashboardQuery: (body) =>
+    request('/dashboard/query', {
+      method: 'POST',
+      body: JSON.stringify(body)
     })
 };

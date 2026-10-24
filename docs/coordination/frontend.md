@@ -1,11 +1,28 @@
 # Sonia / frontend
 
 State: ACCEPTED
-Reviewed contract SHA-256: d32af66a4cab39db4c5e56f7dd5e4f34ff70b10a21cac714eb6d756f5225b62c
-Contract version: 0.2.0
-Branch: feature/frontend
+Reviewed contract SHA-256: d726d73cd0401c2ca413fdf10d58cd9b8d80cc484044c33a64111220cb6ab720
+Contract version: 0.3.0
+Branch: feature/frontend (reviewed v0.3 on `feature/admin-nlp-query` / PR #5 `cd8b2c9`)
 
-## Contract review summary (v0.2.0 from `origin/feature/backend`)
+## Contract v0.3 review summary (`cd8b2c9`)
+
+- Inspected `docs/API_CONTRACT.md` ("v0.3 additions") and `docs/openapi.json` (version `0.3.0`, 33 operations).
+- Verified `Get-FileHash docs/openapi.json -Algorithm SHA256` and Git blob SHA-256: `d726d73cd0401c2ca413fdf10d58cd9b8d80cc484044c33a64111220cb6ab720`.
+- **Decision: `ACCEPTED`** (`d726d73cd0401c2ca413fdf10d58cd9b8d80cc484044c33a64111220cb6ab720`).
+- Verified full frontend compatibility with all additive v0.3 changes:
+  1. `source: "nlp"` badge support in `TicketWorkspace.jsx`, `AdminDashboard.jsx`, `AdminQueryChat.jsx`, and `CommonIssues.jsx` (`source: nlp (NLTK keyword analysis)` / `(NLTK text analysis)` alongside `source: rules`).
+  2. `POST /api/v1/dashboard/query` (`api.askDashboardQuery`) wired to the **4. Ask & Reports** sub-tab (`AdminQueryChat.jsx`), supporting English question prompts (`{ text }`) and interactive filter-chip removal re-runs (`{ plan }`), sortable/filterable report table, CSV export, AI suggestions, and `Common Issues in These Tickets`.
+  3. `GET /api/v1/dashboard/common-issues?from=...&to=...` (`api.getCommonIssues`) wired to `CommonIssuesPanel` in **2. Resolution Analytics** (`Common Issues From Complaint Descriptions` with `Main issue` headline) and `AdminReport.common_issues` in **3. AI Insights**.
+  4. Additive seeded categories (`Infrastructure`, `Food / Canteen`, `Hostel`, `Safety / Security`, `Housekeeping`, `Library`, `Academics`, `Sports`) and departments (`Food Services`, `Hostel Office`, `Campus Security`).
+- Live v0.3 verification run on Windows (`cd8b2c9` deployed to `https://literacy-saturn-done-licence.trycloudflare.com`):
+  - `python scripts/check_contract.py` -> **33 operations passed**
+  - `python -m unittest discover -s tests/ai` -> **39 tests passed in 0.666s**
+  - `cd backend; python -m pytest -q` -> **22 passed in 11.15s**
+  - `cd frontend; npm run build; node test_frontend_contract.mjs` -> **passed** (`32 modules transformed`, 17 endpoint groups verified)
+  - Public tunnel browser E2E (`verify_v03_tunnel.mjs`): verified all new categories/departments, `4. Ask & Reports` example query + filter chip removal re-run, `2. Resolution Analytics` Common Issues + `MAIN ISSUE` line, `3. AI Insights` report with `Common Issues` section and `source: nlp`, student `"Stale food at lunch"` submission (`CMP-000042`) triaged to `Food / Canteen -> Food Services` (`source: nlp`), and `/demo-portal` iframe with `4. Ask & Reports`.
+
+## Contract v0.2 review summary (from `origin/feature/backend`)
 
 - Fetched `origin/feature/backend` (`6c73887`) and inspected `docs/API_CONTRACT.md`, `docs/openapi.json`, and `docs/coordination/backend.md`.
 - Verified `origin/feature/backend:docs/openapi.json` SHA-256 is `d32af66a4cab39db4c5e56f7dd5e4f34ff70b10a21cac714eb6d756f5225b62c`.

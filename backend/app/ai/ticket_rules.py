@@ -1,11 +1,13 @@
-"""Conservative keyword triage against the institution's supplied configuration.
+"""Conservative NLTK keyword triage against the institution's supplied configuration.
 
-These are transparent rules, not trained AI. Mixed/unknown issues stay in review.
+Stemmed, typo-tolerant phrase matching (see nlp.py), not a trained model.
+Mixed/unknown issues stay in review.
 """
 
 import re
-import unicodedata
 from collections.abc import Mapping
+
+from .nlp import content_stems, has_phrase, normalize as _normalize
 
 
 # label aliases, complaint phrases, staff-facing investigation step
@@ -33,19 +35,51 @@ RULES = {
         "Have facilities staff inspect the reported water or drainage issue and verify service after repair.",
     ),
     "cleanliness": (
-        ("cleanliness", "housekeeping", "sanitation", "waste"),
-        ("garbage", "litter", "dirty", "unclean", "overflowing bin", "sanitation", "cleaning", "waste", "cleanliness"),
+        ("cleanliness", "sanitation", "waste"),
+        ("garbage", "litter", "dirty", "unclean", "overflowing bin", "sanitation", "waste", "cleanliness"),
         "Inspect the reported area, arrange cleaning or waste collection, and verify completion with the reporter.",
+    ),
+    "housekeeping": (
+        ("housekeeping",),
+        ("housekeeping", "room cleaning", "laundry", "washroom supplies", "toilet paper", "soap", "hand wash",
+         "mopping", "bedsheet", "linen", "towel"),
+        "Ask housekeeping to check the reported room or supply issue and confirm the service with the reporter.",
     ),
     "transport": (
         ("transport", "bus", "shuttle"),
         ("bus", "shuttle", "transport"),
         "Check the affected route and service records with transport staff before changing the schedule or fleet.",
     ),
+    # Bare "hostel"/"cafeteria"/"sports complex" are location names, so they are not complaint phrases here.
     "hostel": (
-        ("hostel", "mess"),
-        ("mess food", "hostel food", "hostel service"),
-        "Ask hostel services to inspect the reported service issue and confirm the corrective action.",
+        ("hostel",),
+        ("hostel service", "hostel room", "warden", "curfew", "roommate", "room allotment", "room allocation",
+         "hostel fee", "mattress", "bed bugs"),
+        "Ask the hostel office to inspect the reported service issue and confirm the corrective action.",
+    ),
+    "food": (
+        ("food", "canteen", "mess"),
+        ("food", "meal", "canteen", "mess food", "mess hall", "mess menu", "stale", "undercooked", "lunch", "dinner",
+         "breakfast", "menu", "overpriced", "food quality", "food poisoning"),
+        "Ask food services to check the reported meal, hygiene or pricing issue and record the corrective action.",
+    ),
+    "safety": (
+        ("safety", "security"),
+        ("theft", "stolen", "harassment", "ragging", "stalking", "fight", "unsafe", "suspicious", "security guard",
+         "cctv", "trespass", "threat", "assault", "lost id"),
+        "Pass the report to campus security, protect the reporter's identity, and record each action taken.",
+    ),
+    "academics": (
+        ("academic", "academics"),
+        ("timetable", "time table", "exam schedule", "exam hall", "marks", "attendance", "faculty", "lecture",
+         "syllabus", "grade", "class cancelled"),
+        "Ask the academic office to verify the reported schedule or record issue and inform affected students.",
+    ),
+    "sports": (
+        ("sport", "sports", "gym"),
+        ("gym", "sports equipment", "playground", "basketball court", "football ground", "cricket", "badminton",
+         "swimming pool"),
+        "Have facilities staff inspect the reported sports facility or equipment and confirm it is safe to use.",
     ),
     "library": (
         ("library", "books"),
@@ -55,19 +89,15 @@ RULES = {
     "infrastructure": (
         ("infrastructure", "maintenance", "facilities"),
         ("broken door", "broken window", "damaged wall", "broken desk", "ceiling leak", "roof leak",
-         "broken bench", "pothole", "infrastructure"),
+         "broken bench", "pothole", "infrastructure", "lift not working", "elevator", "broken railing",
+         "broken stairs", "cracked wall"),
         "Inspect the damaged facility, document its condition, and assess repair needs before proposing replacements.",
     ),
 }
 
 HAZARDS = ("fire", "smoke", "sparks", "sparking", "exposed wire", "exposed wires",
-           "electric shock", "gas leak", "sewage overflow", "flooding")
-
-
-def _normalize(value):
-    value = unicodedata.normalize("NFKC", value).casefold()
-    value = value.translate(str.maketrans({c: " " for c in "-_/\u2010\u2011\u2012\u2013\u2014\u2015"}))
-    return " ".join(value.split())
+           "electric shock", "gas leak", "sewage overflow", "flooding", "food poisoning",
+           "harassment", "assault", "ragging", "stalking", "violence", "broken railing")
 
 
 def _has(text, phrase):
@@ -124,7 +154,8 @@ def analyze_complaint(title, description, allowed_categories, departments):
     categories = _rows(allowed_categories)
     department_ids = {row["id"] for row in _rows(departments)}
     text = _normalize(title + ". " + description)
-    matched = {family for family, (_, words, _) in RULES.items() if any(_has(text, word) for word in words)}
+    stems = content_stems(text)
+    matched = {family for family, (_, words, _) in RULES.items() if any(has_phrase(stems, word) for word in words)}
     configured_families = {_family(row["name"]) for row in categories}
     candidates = []
     for row in categories:
@@ -135,7 +166,7 @@ def analyze_complaint(title, description, allowed_categories, departments):
         if family == "infrastructure":
             matches |= any(f in matched and f not in configured_families for f in ("electrical", "plumbing", "equipment"))
         if family is None and _normalize(row["name"]) not in {"other", "general", "uncategorized"}:
-            matches = _has(text, _normalize(row["name"]))
+            matches = has_phrase(stems, row["name"])
         if matches:
             candidates.append(row)
 
@@ -157,7 +188,7 @@ def analyze_complaint(title, description, allowed_categories, departments):
         actions.append("Keep people clear of the reported hazard and contact campus safety or qualified staff promptly.")
     if chosen:
         actions.append(action_for_category(chosen["name"]))
-        reason = f"Keyword rules matched the configured category '{chosen['name']}'."
+        reason = f"NLTK keyword matching (stemmed, typo-tolerant) matched the configured category '{chosen['name']}'."
         if department_id is not None:
             reason += " Department suggestion follows its configured routing rule."
         else:
@@ -173,6 +204,6 @@ def analyze_complaint(title, description, allowed_categories, departments):
         "summary": " ".join(title.split()),
         "reason": reason,
         "suggested_actions": actions,
-        "source": "rules",
+        "source": "nlp",
         "needs_review": chosen is None or department_id is None or priority == "HIGH",
     }

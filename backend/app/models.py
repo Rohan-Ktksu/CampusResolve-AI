@@ -1,14 +1,14 @@
 """Pydantic models mirroring docs/openapi.json. Inputs reject unknown fields."""
 from datetime import date, datetime
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 Id = Annotated[int, Field(ge=1)]
 Status = Literal['SUBMITTED', 'IN_PROGRESS', 'RESOLVED', 'REJECTED']
 Priority = Literal['LOW', 'NORMAL', 'HIGH']
 Role = Literal['STUDENT', 'STAFF', 'COORDINATOR', 'ADMIN']
-Source = Literal['rules', 'local_model']
+Source = Literal['rules', 'nlp', 'local_model']
 
 
 class Input(BaseModel):
@@ -220,6 +220,34 @@ class Recommendation(BaseModel):
     horizon: Literal['IMMEDIATE', 'ASSESSMENT']
 
 
+class IssueLocation(BaseModel):
+    location: str
+    count: int
+
+
+class CommonIssue(BaseModel):
+    """Tickets whose own wording shares a problem phrase; reporters are distinct accounts."""
+    issue: str
+    summary: str
+    times_reported: int
+    reporters: int
+    student_reporters: int
+    open: int
+    category: str
+    locations: list[IssueLocation]
+    first_reported: date
+    last_reported: date
+    ticket_numbers: list[str]
+    suggestions: list[str]
+
+
+class CommonIssues(BaseModel):
+    period: Period
+    sample_size: int
+    issues: list[CommonIssue]
+    source: Source
+
+
 class AdminReport(BaseModel):
     model_config = ConfigDict(extra='forbid')
     period: Period
@@ -228,3 +256,55 @@ class AdminReport(BaseModel):
     source: Source
     summary: str
     recommendations: list[Recommendation]
+    common_issues: list[CommonIssue] = Field(default_factory=list)
+
+
+class QueryPlan(Input):
+    """Allow-listed admin query; the chatbox parser fills it, the admin can edit it."""
+    model_config = ConfigDict(extra='forbid', populate_by_name=True)
+    metric: Literal['count', 'avg_resolution', 'list'] = 'count'
+    group_by: Literal['category', 'location', 'department', 'status', 'priority', 'day', 'week', 'month'] | None = None
+    category_ids: list[Id] = Field(default_factory=list, max_length=50)
+    department_ids: list[Id] = Field(default_factory=list, max_length=50)
+    locations: list[Annotated[str, Field(min_length=1, max_length=160)]] = Field(default_factory=list, max_length=50)
+    statuses: list[Status] = Field(default_factory=list, max_length=4)
+    priorities: list[Priority] = Field(default_factory=list, max_length=3)
+    from_: date = Field(alias='from')
+    to: date
+    limit: int = Field(50, ge=1, le=200)
+    oldest_first: bool = False
+
+
+class QueryInput(Input):
+    text: Annotated[str, Field(min_length=1, max_length=500)] | None = None
+    plan: QueryPlan | None = None
+
+    @model_validator(mode='after')
+    def one_of(self):
+        if (self.text is None) == (self.plan is None):
+            raise ValueError('Send exactly one of text or plan')
+        return self
+
+
+class QueryColumn(BaseModel):
+    key: str
+    label: str
+
+
+class QuerySuggestion(BaseModel):
+    title: str
+    evidence: str
+    next_step: str
+
+
+class QueryResult(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    query: str | None
+    plan: QueryPlan
+    columns: list[QueryColumn]
+    rows: list[dict[str, Any]]
+    summary: str
+    suggestions: list[QuerySuggestion]
+    common_issues: list[CommonIssue]
+    warnings: list[str]
+    source: Source

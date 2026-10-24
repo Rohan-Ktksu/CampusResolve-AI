@@ -780,7 +780,7 @@ export default function TicketWorkspace({
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
                 <span className="badge source-badge">
                   source: {aiResult.source}{' '}
-                  {aiResult.source === 'rules' ? '(Rules-based local fallback)' : '(Local model)'}
+                  {{ rules: '(Rules-based local fallback)', nlp: '(NLTK keyword analysis)' }[aiResult.source] || '(Local model)'}
                 </span>
                 <span className={`badge priority-${aiResult.priority}`}>
                   Suggested Priority: {aiResult.priority}

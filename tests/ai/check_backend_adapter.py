@@ -32,16 +32,17 @@ def run():
     with patch.object(backend, "load", return_value={"title": "Wi-Fi down", "description": "Internet disconnects in lab."}):
         result = backend.analyze_complaint(42, me=admin, conn=conn)
     assert result.category_id == 1 and result.suggested_department_id == 10
-    assert result.source == "rules" and not result.needs_review
-    assert "Keyword rules" in result.reason, "Backend silently used the manual-review fallback"
+    assert result.source == "nlp" and not result.needs_review
+    assert "NLTK keyword matching" in result.reason, "Backend silently used the manual-review fallback"
     assert conn.execute.call_count == 2, "Triage should read configuration, not write ticket state"
 
     conn = MagicMock()
     conn.execute.return_value.fetchall.return_value = [{"id": 1, "department_id": 10},
                                                       {"id": 5, "department_id": 30}]
     body = backend.ReportInput.model_validate({"from": "2026-10-01", "to": "2026-10-24"})
+    patch.object(backend, "issue_tickets", return_value=[]).start()  # complaint-text query; covered by live tests
     with patch.object(backend, "compute_insights", return_value=aggregates()):
-        report = backend.generate_report(body, me=admin, conn=conn)
+        report = backend.AdminReport.model_validate(backend.generate_report(body, me=admin, conn=conn))
     assert report.sample_size == 20 and report.source == "rules"
     assert len(report.recommendations) == 3
     assert "13 of 20" in report.recommendations[2].evidence, "Backend did not use Rohan's location aggregation"
@@ -50,7 +51,7 @@ def run():
     empty.update(sample_size=0, unresolved=0, high_priority_unresolved=0, resolved_count=0,
                  avg_resolution_hours=None, by_category=[], by_location=[])
     with patch.object(backend, "compute_insights", return_value=empty):
-        empty_report = backend.generate_report(body, me=admin, conn=conn)
+        empty_report = backend.AdminReport.model_validate(backend.generate_report(body, me=admin, conn=conn))
     assert empty_report.sample_size == 0 and empty_report.recommendations == []
 
     with patch.object(backend, "load", return_value={"title": "Wi-Fi down", "description": "Internet disconnects."}), \

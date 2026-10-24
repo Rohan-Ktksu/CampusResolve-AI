@@ -44,7 +44,10 @@ for path, methods in spec['paths'].items():
                 assert 'schema' in content, 'Response missing schema'
 
 assert spec['components']['schemas']['Complaint']['properties']['status']['enum'] == ['SUBMITTED','IN_PROGRESS','RESOLVED','REJECTED']
-assert spec['components']['schemas']['AIAnalysis']['properties']['source']['enum'] == ['rules','local_model'], 'Paid provider source added without agreement'
+# 'nlp' (v0.3) is local NLTK code, agreed by Rohan; any other source needs the same explicit agreement.
+LOCAL_SOURCES = ['rules','nlp','local_model']
+for schema in ('AIAnalysis', 'AdminReport', 'QueryResult', 'CommonIssues'):
+    assert spec['components']['schemas'][schema]['properties']['source']['enum'] == LOCAL_SOURCES, 'Paid provider source added without agreement'
 if len(sys.argv) > 1:
     runtime = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
     actual = {(p,m) for p,ms in runtime['paths'].items() for m in ms}

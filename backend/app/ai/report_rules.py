@@ -5,6 +5,7 @@ from collections import Counter
 from collections.abc import Mapping
 from datetime import date, datetime
 
+from .nlp import key_terms
 from .ticket_rules import action_for_category
 
 
@@ -18,8 +19,11 @@ def _plural(count, word):
     return word if count == 1 else word + "s"
 
 
-def generate_admin_report(aggregates):
+def generate_admin_report(aggregates, texts=()):
     """Return AdminReport using only the supplied, authorized aggregate evidence.
+
+    `texts` are the cohort's complaint titles/descriptions. When given, NLTK key terms are
+    added and source becomes "nlp". Complaint text itself is never quoted (team privacy rule).
 
     The frozen Insights input has no category-to-department map, so department_id
     remains null; the administrator chooses a responsible team in the existing UI.
@@ -49,6 +53,8 @@ def generate_admin_report(aggregates):
     locations = aggregates["by_location"]
     if not isinstance(categories, list) or not isinstance(locations, list):
         raise ValueError("Category/location aggregates must be lists.")
+    if not isinstance(texts, (list, tuple)) or len(texts) > sample or not all(isinstance(t, str) for t in texts):
+        raise ValueError("Complaint texts must be a list of strings from the report sample.")
     if sum(_count(row["count"]) for row in categories) != sample or sum(_count(row["count"]) for row in locations) != sample:
         raise ValueError("Category and location counts must each match the report sample.")
     for row in categories:
@@ -89,6 +95,11 @@ def generate_admin_report(aggregates):
         summary += f" Mean resolution time is {average:.2f} hours across {resolved} resolved {_plural(resolved, 'ticket')}."
     else:
         summary += " No resolved tickets are available for a resolution-time average."
+    terms = key_terms(texts) if texts else []
+    if texts:
+        result["source"] = "nlp"
+        if terms:
+            summary += " Most-mentioned terms: " + ", ".join(f"{word} ({n})" for word, n in terms) + "."
     result["summary"] = summary
 
     recs = result["recommendations"]
@@ -114,6 +125,15 @@ def generate_admin_report(aggregates):
             "evidence": f"{unclassified} of {sample} reported {_plural(sample, 'ticket')} {'has' if unclassified == 1 else 'have'} no usable category.",
             "department_id": None,
             "next_step": "Review these reports and assign suitable configured categories before inferring recurring service problems or development priorities.",
+            "horizon": "ASSESSMENT",
+        })
+    if terms and terms[0][1] >= 3:
+        word, n = terms[0]
+        recs.append({
+            "title": f"Look into recurring mentions of '{word}'",
+            "evidence": f"'{word}' appears in {n} of {sample} reported {_plural(sample, 'ticket')} (NLTK term frequency).",
+            "department_id": None,
+            "next_step": f"Read the tickets mentioning '{word}' together to confirm whether they describe one underlying problem before acting.",
             "horizon": "ASSESSMENT",
         })
     recs.append({

@@ -2,6 +2,16 @@
 
 Canonical machine contract: docs/openapi.json. Atif owns it; Sonia reviews it using docs/coordination/README.md. The Markdown defines workflow/access semantics that JSON schemas alone cannot express. Both must agree. Implementation lives in backend/ on feature/backend; see docs/coordination/backend.md for what is actually running and tested.
 
+## v0.3 additions — PROPOSED by Rohan (lead), pending Atif/Sonia review
+
+Additive only; every v0.2 operation and shape still works. Admin/coordinator only; students and staff get 403.
+
+- `source` may now be `"nlp"`: local NLTK keyword analysis (stemming, typo tolerance), no model or paid service. `"rules"` remains the labelled fallback.
+- `POST /dashboard/query` — admin chatbox. Body is exactly one of `{"text": "<English question, ≤500 chars>"}` or `{"plan": QueryPlan}` (re-run after the admin removes a filter chip). The text is parsed into an allow-listed `QueryPlan` (metric `count`/`avg_resolution`/`list`, optional `group_by`, category/department/location/status/priority filters, `from`/`to` ≤366 days, `limit` 1–200, `oldest_first`); it never becomes SQL. Response `QueryResult`: the plan used, `columns` + `rows` (a table), `summary`, up to 4 evidence-based `suggestions`, `common_issues` among the matching tickets, `warnings` (e.g. no date found → last 30 days), `source`. Unknown text gives overall totals plus a warning; parser errors fall back to 30-day totals with `source: rules`.
+- `GET /dashboard/common-issues?from&to` — `CommonIssues`: tickets in the created_at range grouped by a shared stemmed word or two-word phrase from their own title/description. Each issue gives `times_reported` (tickets), `reporters` and `student_reporters` (distinct reporting accounts), `open`, dominant `category`, top `locations`, first/last dates, ticket numbers and suggestions. Complaint text is never quoted. Location names and generic words ("problem", "please") are ignored.
+- `AdminReport.common_issues` (default `[]`): the same analysis for the report cohort. With complaint text available the report summary adds NLTK most-mentioned terms and `source: nlp`.
+- Seed configuration adds departments Food Services, Hostel Office, Campus Security and categories Infrastructure, Food / Canteen, Hostel, Safety / Security, Housekeeping, Library, Academics, Sports (ensured on startup for existing demo DBs).
+
 ## v0.2 backend decisions (routine details, no wire-shape change from v0.1)
 
 - `ticket_number` is `CMP-` plus the zero-padded database ID, e.g. `CMP-000042`, enforced unique in PostgreSQL.

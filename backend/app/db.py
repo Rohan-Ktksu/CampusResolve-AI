@@ -44,9 +44,12 @@ def verify_password(password: str, stored: str) -> bool:
     return hmac.compare_digest(candidate, digest)
 
 
-DEPARTMENTS = ['IT', 'Facilities', 'Housekeeping', 'Academics', 'Transport']
+DEPARTMENTS = ['IT', 'Facilities', 'Housekeeping', 'Academics', 'Transport', 'Food Services', 'Hostel Office', 'Campus Security']
 CATEGORIES = [('Wi-Fi / Network', 'IT'), ('Classroom Equipment', 'IT'), ('Electrical', 'Facilities'),
-              ('Plumbing', 'Facilities'), ('Cleanliness', 'Housekeeping'), ('Transport', 'Transport'), ('Other', None)]
+              ('Plumbing', 'Facilities'), ('Cleanliness', 'Housekeeping'), ('Transport', 'Transport'), ('Other', None),
+              ('Infrastructure', 'Facilities'), ('Food / Canteen', 'Food Services'), ('Hostel', 'Hostel Office'),
+              ('Safety / Security', 'Campus Security'), ('Housekeeping', 'Housekeeping'), ('Library', 'Academics'),
+              ('Academics', 'Academics'), ('Sports', 'Facilities')]
 LOCATIONS = ['Block A / Classrooms', 'Block B / Lab 204', 'Library', 'Hostel 1', 'Cafeteria', 'Sports Complex', 'Admin Block',
              'Main Gate / Bus Stop']
 USERS = [('student@demo.edu', 'Demo Student', 'STUDENT', None), ('student2@demo.edu', 'Second Student', 'STUDENT', None),
