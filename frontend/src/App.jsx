@@ -217,6 +217,8 @@ export default function App() {
     setInstitution(null);
     setTickets([]);
     setSelectedTicketId(null);
+    setReportSuccess('');
+    setReportError('');
     setAuthMessage('Signed out.');
   }
 

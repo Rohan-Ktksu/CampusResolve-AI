@@ -83,7 +83,11 @@ export default function TicketWorkspace({
       setHistory([]);
       return;
     }
-    loadFullTicket(complaintId);
+    let active = true;
+    loadFullTicket(complaintId, () => active);
+    return () => {
+      active = false;
+    };
   }, [complaintId]);
 
   useEffect(() => {
@@ -101,7 +105,7 @@ export default function TicketWorkspace({
     };
   }, [imageBlobUrl]);
 
-  async function loadFullTicket(id) {
+  async function loadFullTicket(id, isActive = () => true) {
     setLoading(true);
     setError('');
     setActionMsg('');
@@ -113,6 +117,7 @@ export default function TicketWorkspace({
         api.getComplaint(id),
         api.getComplaintHistory(id)
       ]);
+      if (!isActive()) return;
       syncComplaintFields(cData);
       setHistory(Array.isArray(hData) ? hData : []);
 
@@ -129,9 +134,10 @@ export default function TicketWorkspace({
         setFeedback(null);
       }
     } catch (err) {
+      if (!isActive()) return;
       setError(err.message || 'Could not load ticket details.');
     } finally {
-      setLoading(false);
+      if (isActive()) setLoading(false);
     }
   }
 
