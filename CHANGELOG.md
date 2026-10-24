@@ -15,6 +15,7 @@ PRs [#7](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/7) (merge `26f7db1
 - **Upload limit:** configurable with `MAX_UPLOAD_BYTES`. The Vercel deployment uses 4 MiB, to fit Vercel's 4.5 MB request limit; local runs keep 5 MiB.
 - **Team rule:** `AGENTS.md` now allows free (no card) Vercel + Neon hosting for the public demo.
 - **API contract:** unchanged (v0.3, `d726d73c…`).
+- **Startup fix:** concurrent serverless cold starts could both create the tables and collide; table setup now takes a PostgreSQL advisory lock.
 - **Build fix:** Vercel cannot read `-r` includes, so the runtime packages now live in the root `requirements.txt`; `backend/requirements.txt` includes it and adds the test tools.
 
 | Infrastructure | Value |

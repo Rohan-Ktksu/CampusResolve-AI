@@ -60,6 +60,8 @@ DEMO_PASSWORD = 'demo1234'  # fictional local-only seed accounts, documented in 
 
 def init_db():
     with connect() as conn:
+        # Serverless cold starts can run this concurrently; one transaction-scoped lock serialises them.
+        conn.execute('SELECT pg_advisory_xact_lock(727274)')
         conn.execute((Path(__file__).parent / 'schema.sql').read_text(encoding='utf-8'))
         created = conn.execute("""INSERT INTO institutions (code, name) VALUES ('DEMO', 'Demo Institute of Technology (fictional)')
                                   ON CONFLICT (code) DO NOTHING RETURNING id""").fetchone()
