@@ -2,43 +2,16 @@
 
 Run from backend/:  TEST_DATABASE_URL=postgresql://... python -m pytest
 """
-import os
 import struct
 import zlib
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
 import psycopg
-import pytest
 
-TEST_DB = os.environ.get('TEST_DATABASE_URL', 'postgresql://campusresolve:campusresolve_local@localhost:5432/campusresolve_test')
-os.environ['DATABASE_URL'] = TEST_DB
-os.environ['UPLOAD_DIR'] = 'work/test-uploads'
-
-from fastapi.testclient import TestClient  # noqa: E402
-
-from app.main import app  # noqa: E402
+from conftest import TEST_DB
 
 PNG = b'\x89PNG\r\n\x1a\n' + struct.pack('>I', 13) + b'IHDR' + struct.pack('>IIBBBBB', 1, 1, 8, 2, 0, 0, 0) + struct.pack('>I', zlib.crc32(b'IHDR'))
-
-
-@pytest.fixture(scope='module')
-def client():
-    with psycopg.connect(TEST_DB, autocommit=True) as conn:
-        conn.execute('DROP SCHEMA public CASCADE; CREATE SCHEMA public')
-    with TestClient(app) as c:
-        yield c
-
-
-def login(client, email):
-    r = client.post('/api/v1/auth/login', json={'email': email, 'password': 'demo1234'})
-    assert r.status_code == 200, r.text
-    return {'Authorization': f"Bearer {r.json()['access_token']}"}
-
-
-@pytest.fixture(scope='module')
-def h(client):
-    return {k: login(client, f'{k}@demo.edu') for k in ('student', 'student2', 'it.staff', 'facilities.staff', 'coordinator', 'admin')}
 
 
 def ids(client, h):
