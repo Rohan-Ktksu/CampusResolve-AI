@@ -14,6 +14,10 @@ def _count(value):
     return value
 
 
+def _plural(count, word):
+    return word if count == 1 else word + "s"
+
+
 def generate_admin_report(aggregates):
     """Return AdminReport using only the supplied, authorized aggregate evidence.
 
@@ -65,16 +69,24 @@ def generate_admin_report(aggregates):
     if sample == 0:
         return result
 
-    top = sorted(categories, key=lambda row: (-row["count"], row["category"]))[0]
+    categorized = [row for row in categories if row.get("category_id") is not None
+                   and row["category"].strip().casefold() != "uncategorized" and row["count"] > 0]
+    top = sorted(categorized, key=lambda row: (-row["count"], row["category"]))[0] if categorized else None
+    unclassified = sample - sum(row["count"] for row in categorized)
     location_counts = Counter()
     for row in locations:
         location_counts[row["location"]] += row["count"]
     hotspot, hotspot_count = sorted(location_counts.items(), key=lambda item: (-item[1], item[0]))[0]
-    summary = (f"{sample} reported tickets in the selected creation-date cohort; {unresolved} currently unresolved, "
-               f"including {urgent} high-priority reports. {top['category']} accounts for {top['count']} of {sample} tickets. "
-               f"{hotspot} has {hotspot_count} reported tickets. Counts measure reports, not unique affected people.")
+    summary = (f"{sample} reported {_plural(sample, 'ticket')} in the selected creation-date cohort; {unresolved} currently unresolved, "
+               f"including {urgent} high-priority {_plural(urgent, 'report')}. ")
+    if top:
+        summary += f"Among categorized issues, {top['category']} accounts for {top['count']} of {sample} {_plural(sample, 'ticket')}. "
+    if unclassified:
+        summary += f"{unclassified} {_plural(unclassified, 'ticket')} still {'needs' if unclassified == 1 else 'need'} category review. "
+    summary += (f"{hotspot} has {hotspot_count} reported {_plural(hotspot_count, 'ticket')}. "
+                "Counts measure reports, not unique affected people.")
     if average is not None:
-        summary += f" Mean resolution time is {average:.2f} hours across {resolved} resolved tickets."
+        summary += f" Mean resolution time is {average:.2f} hours across {resolved} resolved {_plural(resolved, 'ticket')}."
     else:
         summary += " No resolved tickets are available for a resolution-time average."
     result["summary"] = summary
@@ -83,21 +95,30 @@ def generate_admin_report(aggregates):
     if urgent:
         recs.append({
             "title": "Review high-priority unresolved issues first",
-            "evidence": f"{urgent} of {unresolved} unresolved reports are currently marked HIGH.",
+            "evidence": f"{urgent} of {unresolved} unresolved {_plural(unresolved, 'report')} {'is' if urgent == 1 else 'are'} currently marked HIGH.",
             "department_id": None,
             "next_step": "Have the coordinator verify urgency, assign qualified staff, and track action separately from complaint frequency.",
             "horizon": "IMMEDIATE",
         })
-    recs.append({
-        "title": f"Assess recurring {top['category']} complaints",
-        "evidence": f"{top['count']} of {sample} reported tickets ({100 * top['count'] / sample:.1f}%) concern {top['category']}.",
-        "department_id": None,
-        "next_step": action_for_category(top["category"]),
-        "horizon": "ASSESSMENT",
-    })
+    if top:
+        recs.append({
+            "title": f"Assess recurring {top['category']} complaints" if top['count'] > 1 else f"Review the {top['category']} report",
+            "evidence": f"{top['count']} of {sample} reported {_plural(sample, 'ticket')} ({100 * top['count'] / sample:.1f}%) {'concerns' if top['count'] == 1 else 'concern'} {top['category']}.",
+            "department_id": None,
+            "next_step": action_for_category(top["category"]),
+            "horizon": "ASSESSMENT",
+        })
+    else:
+        recs.append({
+            "title": "Categorize unclassified reports",
+            "evidence": f"{unclassified} of {sample} reported {_plural(sample, 'ticket')} {'has' if unclassified == 1 else 'have'} no usable category.",
+            "department_id": None,
+            "next_step": "Review these reports and assign suitable configured categories before inferring recurring service problems or development priorities.",
+            "horizon": "ASSESSMENT",
+        })
     recs.append({
         "title": f"Inspect reported issues at {hotspot}",
-        "evidence": f"{hotspot_count} of {sample} reported tickets are located at {hotspot}, across the supplied category groups.",
+        "evidence": f"{hotspot_count} of {sample} reported {_plural(sample, 'ticket')} {'is' if hotspot_count == 1 else 'are'} located at {hotspot}, across the supplied category groups.",
         "department_id": None,
         "next_step": "Review the location's tickets with the responsible departments and inspect conditions before proposing repairs or development spending.",
         "horizon": "ASSESSMENT",
@@ -105,7 +126,7 @@ def generate_admin_report(aggregates):
     if unresolved and not urgent:
         recs.append({
             "title": "Review the unresolved queue",
-            "evidence": f"{unresolved} of {sample} reported tickets remain unresolved.",
+            "evidence": f"{unresolved} of {sample} reported {_plural(sample, 'ticket')} {'remains' if unresolved == 1 else 'remain'} unresolved.",
             "department_id": None,
             "next_step": "Check queue age and ownership, verify priorities, and agree the next action with assigned departments.",
             "horizon": "IMMEDIATE",

@@ -1,6 +1,6 @@
 # Rohan / AI
 
-State: IMPLEMENTED_READY_FOR_REVIEW; live integration not yet run by Rohan
+State: READY_FOR_UI_INTEGRATION; initial live API integration verified by Atif, latest report wording fixes checked by Rohan
 AI callable interface: ACKNOWLEDGED, unchanged from docs/AI_CONTRACT.md
 Branch: feature/ai
 
@@ -29,7 +29,15 @@ Branch: feature/ai
 ## Remaining integration / limitations
 
 - Review/merge the backend and AI PRs through Rohan; no main merge is authorized or performed by this handoff.
-- Run the live PostgreSQL/UI lifecycle with the AI package present, including image and Insights screens. Atif reported a prior live lifecycle test without Rohan's package; that is not evidence for this new integration.
-- Current backend seed omits Transport. Configure that category/department through the admin UI before demonstrating the official transport requirement; rules do not invent configuration.
+- Run the live PostgreSQL/UI lifecycle with the AI package present, including image and Insights screens. See Atif's recorded API verification below; full combined UI verification remains pending.
+- Atif's updated backend seed now includes Transport routing and Main Gate / Bus Stop, with additive startup configuration that preserves existing tickets. Rules still do not invent configuration.
 - Keyword rules cannot reliably understand arbitrary wording, spelling mistakes, nuanced negation, or root causes. No trained model or accuracy percentage is claimed.
 - Reporter assistance is advisory; authorized staff confirms handling and actual resolution. No cost/benefit or real college integration claims are made.
+
+## Atif's integration review and Rohan's follow-up — 24 October 2026
+
+Inspected the published docs/coordination/backend.md and backend/tests/test_ai_integration.py on feature/backend. Atif records a clean temporary integration with AI commit 0cc4797, 17 backend tests passed (including 9 real PostgreSQL/route AI cases), 19 AI unit tests, adapter checks, and live HTTP consumption of both functions. Environment: Fedora 44 / Python 3.14.6 / PostgreSQL 16.15 in local podman. These are Atif's recorded runs, not Windows/PostgreSQL runs performed by Rohan. His branch alone skips the 9 AI cases until the package is integrated.
+
+Addressed the two package review findings: singular report wording throughout; Uncategorized remains in totals but is a classification gap instead of a competing service category. Known-category recommendations win ties; all-uncategorized data asks for classification first. Single reports are not called recurring. No signature/schema/contract-hash change. Department recommendations remain null intentionally because the input has no authorized map.
+
+Rohan's updated Windows suite: 22 unit tests passed (19 existing + 3 regression cases for singular data, Uncategorized tie, and all-uncategorized data). Adapter checks also passed against a fresh temporary snapshot of backend 203eb7f with the updated AI package: both functions accepted by actual models/routes, no silent fallback, empty-period/error handling intact. Database/auth inputs were mocked explicitly. Live API tests should be repeated on the final integrated revision before the final UI demo. Known backend limitation remains with Atif: renamed seeded config names are recreated on restart; this package does not change seeding.
