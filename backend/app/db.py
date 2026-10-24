@@ -55,6 +55,8 @@ LOCATIONS = ['Block A / Classrooms', 'Block B / Lab 204', 'Library', 'Hostel 1',
 USERS = [('student@demo.edu', 'Demo Student', 'STUDENT', None), ('student2@demo.edu', 'Second Student', 'STUDENT', None),
          ('it.staff@demo.edu', 'IT Staff', 'STAFF', 'IT'), ('facilities.staff@demo.edu', 'Facilities Staff', 'STAFF', 'Facilities'),
          ('coordinator@demo.edu', 'Demo Coordinator', 'COORDINATOR', None), ('admin@demo.edu', 'Demo Admin', 'ADMIN', None)]
+# Extra fictional students so demo data has several distinct reporters per issue.
+USERS += [(f'student{n}@demo.edu', f'Demo Student {n}', 'STUDENT', None) for n in range(3, 9)]
 DEMO_PASSWORD = 'demo1234'  # fictional local-only seed accounts, documented in docs/API_CONTRACT.md
 
 
@@ -63,7 +65,7 @@ def init_db():
         # Serverless cold starts can run this concurrently; one transaction-scoped lock serialises them.
         conn.execute('SELECT pg_advisory_xact_lock(727274)')
         conn.execute((Path(__file__).parent / 'schema.sql').read_text(encoding='utf-8'))
-        created = conn.execute("""INSERT INTO institutions (code, name) VALUES ('DEMO', 'Demo Institute of Technology (fictional)')
+        conn.execute("""INSERT INTO institutions (code, name) VALUES ('DEMO', 'Demo Institute of Technology (fictional)')
                                   ON CONFLICT (code) DO NOTHING RETURNING id""").fetchone()
         inst = conn.execute("SELECT id FROM institutions WHERE code = 'DEMO'").fetchone()['id']
         # Config is ensured on every start so seed additions (e.g. Transport) reach existing demo DBs; tickets are never touched.
@@ -79,9 +81,10 @@ def init_db():
         for name in LOCATIONS:
             conn.execute('''INSERT INTO locations (institution_id, name) SELECT %(i)s, %(n)s
                             WHERE NOT EXISTS (SELECT 1 FROM locations WHERE institution_id = %(i)s AND name = %(n)s)''', {'i': inst, 'n': name})
-        if not created:
-            return
+        # Accounts are added when missing (so new seed users reach existing demo DBs); existing ones are never changed.
         for email, name, role, d in USERS:
+            if conn.execute('SELECT 1 FROM users WHERE lower(email) = lower(%s)', (email,)).fetchone():
+                continue
             uid = conn.execute('INSERT INTO users (email, name, password_hash) VALUES (%s, %s, %s) RETURNING id',
                                (email, name, hash_password(DEMO_PASSWORD))).fetchone()['id']
             conn.execute('INSERT INTO memberships (user_id, institution_id, role, department_id) VALUES (%s, %s, %s, %s)',
