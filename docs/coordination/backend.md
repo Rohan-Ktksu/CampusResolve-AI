@@ -1,6 +1,6 @@
 # Atif / backend
 
-State: PROPOSED
+State: PROPOSED (awaiting Sonia's review)
 Contract SHA-256 (docs/openapi.json, LF): d32af66a4cab39db4c5e56f7dd5e4f34ff70b10a21cac714eb6d756f5225b62c
 Contract version: 0.2.0
 Branch: feature/backend
@@ -14,13 +14,36 @@ Review with:
 ```
 git fetch origin
 git show origin/feature/backend:docs/openapi.json > work/openapi.json
-python scripts/check_contract.py
 Get-FileHash work/openapi.json -Algorithm SHA256
 ```
 
 Record ACCEPTED plus the identical hash in docs/coordination/frontend.md, or numbered CHANGES_REQUESTED with JSON examples.
 
-Review responses: none yet.
-Tests actually run by Atif: `python scripts/check_contract.py` → "Contract sanity check passed: 31 operations".
+Frontend notes:
+- History entries come from two tables, so `id` is unique only per `kind`; use `kind + id` as the React key.
+- Login uses the seeded accounts in docs/API_CONTRACT.md. Show `location` as a dropdown from `GET /locations`.
+- The backend is ready to run locally now; see backend/README.md.
 
-Next: implement login and persisted complaint create/list, then assign → status → resolve → feedback → stats.
+## Implemented (all 31 contract operations are live)
+
+Login/me (HS256 bearer, PBKDF2 password hashes), institution/locations, admin category/department CRUD with soft deactivation, staff list, complaint create/list/get/patch/archive, category-rule department routing, JPEG/PNG upload validated by file signature (<=5 MiB, authorized serving, stored outside any public folder), assignment, status workflow with history, reporter-only feedback CRUD, dashboard stats, insights, rules report, analyze.
+
+AI wiring: routes call `app.ai.analyze_complaint` and `app.ai.generate_admin_report` if Rohan's package exports them, validate the output (schema plus configured IDs), and otherwise return labelled `source: "rules"` output. As of origin/feature/ai at cde640d, neither function exists, so the output is always rules.
+
+## Tests actually run by Atif (2026-10-24, Linux, Python 3.14.6, PostgreSQL 16 in local podman)
+
+- `python scripts/check_contract.py` → "Contract sanity check passed: 31 operations".
+- `cd backend && python -m pytest -q` → 8 passed. Covers: unauthenticated/invalid-token 401, unknown fields 422, student+staff reporting, rule routing, invalid and oversized image rejection, valid upload with authorized fetch, another student/other department 404, role 403s, assignee must belong to department, invalid/same-state transitions 409, outcome note required, resolved_at set, history order, feedback CRUD + duplicate 409, stats average, uncategorized → review, reject, category change reroutes, admin-only archive, config deactivation blocks new use, foreign-institution department rejected, 16 concurrent creates → 16 unique ticket numbers, analyze rules fallback, insights range validation, empty-period report.
+- Runtime: `python scripts/check_contract.py work/runtime-openapi.json` → "Runtime exposes every seed operation".
+- Restart persistence: created CMP-000001 via curl, restarted uvicorn, ticket still listed.
+
+## Gaps / not yet verified
+
+- Not run on Windows yet; commands in backend/README.md are written for it but untested there.
+- No frontend integration yet (Sonia has not pushed; frontend.md is NOT_STARTED at cde640d).
+- Runtime schemas were compared by operation presence only, not field by field.
+- Image check uses file signatures, not full decoding.
+
+Review responses: none yet (checked origin/feature/frontend once at cde640d).
+
+Next: when Sonia's review lands, address it and re-propose if the contract changes; help integrate the first real frontend submission.
