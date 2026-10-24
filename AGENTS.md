@@ -23,10 +23,10 @@ Atif owns API routers and AI route wiring. Rohan owns the callable AI functions.
 ## No additional spending
 
 - Default application behavior is local/rules-based. Label it `source: rules`, never pretend it is a trained language model.
-- No paid model APIs, cloud databases, hosting, paid plugins, billing enrollment, metered agent runners, or AI GitHub Actions. No background model-to-model chat, API bridge, or polling bot.
+- No paid model APIs, paid cloud databases or hosting, paid plugins, billing enrollment, metered agent runners, or AI GitHub Actions. No background model-to-model chat, API bridge, or polling bot.
 - Existing coding-assistant subscriptions/free allowances still have provider limits. Do not enable paid overage, buy credits, upgrade, or claim unlimited/free inference.
 - If useful later, an already installed local model may be used only after checking machine capability and agreeing the local interface. Do not download large models automatically. Its absence cannot block CRUD or the rules demo.
-- Use local PostgreSQL and normal Git collaboration. Never send secrets or actual student grievances to an external AI provider.
+- Develop on local PostgreSQL. The public demo (agreed by Rohan) runs on the free Vercel Hobby plan with a free Neon PostgreSQL database; keep it on free tiers with no card or overage, and synthetic data only. Use normal Git collaboration. Never send secrets or actual student grievances to an external AI provider.
 
 ## Establish the API contract without making Rohan relay messages
 
@@ -62,7 +62,7 @@ Git authentication is required on EACH computer. Verify `gh auth status`, `git c
 - Submitted -> In Progress or Rejected; In Progress -> Resolved or Rejected. Assignment required before In Progress. Outcome note required for Resolved/Rejected. No reopening in the prototype.
 - Only the original reporter, including staff reporters, manages their feedback on a resolved ticket. Staff access to departmental work is independent of reporter ownership.
 - AI suggestion generation does not update the ticket. Human-confirmed changes use authorized APIs. Require staff verification before resolving an issue.
-- Image support: JPEG/PNG up to 5 MiB; validate actual content; authorized serving; no public upload directory. Failed upload leaves the saved ticket and permits retry.
+- Image support: JPEG/PNG up to 5 MiB (`MAX_UPLOAD_BYTES`; the Vercel demo uses 4 MiB to fit its 4.5 MB request limit); validate actual content; authorized serving; images stored in PostgreSQL, no public upload directory. Failed upload leaves the saved ticket and permits retry.
 - Basic analytics exclude archived tickets. No resolved records means null average, not zero. Counts represent ticket volume, not unique affected people. Reports must not invent causes, costs, or improvement percentages.
 
 ## Delivery and checks
