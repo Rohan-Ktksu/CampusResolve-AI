@@ -63,4 +63,4 @@ PRs [#1](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/1) (Atif), [#2](ht
 
 Commit `cde640d` · by Rohan
 
-- Master plan from REVA Problem #3, ownership rules (`AGENTS.md`), and the seed API contract and AI contract.
+- Master plan from REVA Problem #3, ownership rules (`AGENTS.md`), and the seed API contract.

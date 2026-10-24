@@ -92,7 +92,7 @@ flowchart LR
 
 **How common issues are found:** each ticket's words are stemmed with NLTK ("leaking" → "leak"), filler words and location names are dropped, and the word or two-word phrase shared by the most tickets becomes an issue. Those tickets are set aside and the search repeats. Each issue reports times reported, distinct student and staff reporters, how many are still open, where, and suggested next steps. Complaint text is analysed but never quoted.
 
-NLTK pieces used: `SnowballStemmer`, `RegexpTokenizer`, `edit_distance` and `ngrams`. All of them work after `pip install`, with no `nltk.download`. Details: [backend/app/ai/README.md](backend/app/ai/README.md) · [backend/app/ai/README.md](backend/app/ai/README.md).
+NLTK pieces used: `SnowballStemmer`, `RegexpTokenizer`, `edit_distance` and `ngrams`. All of them work after `pip install`, with no `nltk.download`. Details: [backend/app/ai/README.md](backend/app/ai/README.md).
 
 ## 🛤 The journey
 
@@ -124,7 +124,7 @@ Every release and update, newest first. Full details in [CHANGELOG.md](CHANGELOG
 | **v0.4.0** | 2026-10-24 | Free always-on hosting on Vercel + Neon (Singapore); photos stored in PostgreSQL; safe concurrent start-up; CHANGELOG | [#7](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/7), [#8](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/8), [#9](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/9) | v0.3 (unchanged) | Vercel + Neon |
 | **v0.3.0** | 2026-10-24 | NLTK assistant; Ask & Reports chatbox; common issues; 8 new categories and 3 departments; README rewrite; `main` protected | [#5](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/5) | v0.3 `d726d73c…` (additive) | Cloudflare tunnel |
 | **v0.2.0** | 2026-10-24 | Working prototype: FastAPI + PostgreSQL backend, React frontend, rules-based AI, live demo | [#1](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/1)–[#4](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/4) | v0.2 `d32af66a…` (frozen) | Cloudflare tunnel |
-| **v0.1.0** | 2026-10-24 | Team handoff: master plan, ownership rules, seed API and AI contracts | — | v0.1 seed | — |
+| **v0.1.0** | 2026-10-24 | Team handoff: master plan, ownership rules, seed API contract | — | v0.1 seed | — |
 
 ## 👥 Team & contributions
 
@@ -213,7 +213,7 @@ cd frontend; npm run build; node test_frontend_contract.mjs
 - [docs/API_CONTRACT.md](docs/API_CONTRACT.md) + [docs/openapi.json](docs/openapi.json): the API contract.
   - **v0.2:** frozen and accepted by backend and frontend.
   - **v0.3:** additive. Accepted by frontend (SHA-256 `d726d73c…`); backend review pending.
-- [backend/app/ai/README.md](backend/app/ai/README.md): AI function interfaces, validation and fallbacks.
+- [backend/app/ai/README.md](backend/app/ai/README.md): how the NLTK assistant works.
 - [docs/coordination/README.md](docs/coordination/README.md): how contract changes are proposed and accepted through Git.
 - [CHANGELOG.md](CHANGELOG.md): every version, what changed and where it runs.
 - [AGENTS.md](AGENTS.md): ownership, branches and rules for every contributor and coding assistant.

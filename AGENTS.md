@@ -16,7 +16,7 @@ Primary AI work: category, priority, department and next-step suggestions inside
 |---|---|---|
 | Atif / Claude Code | feature/backend | backend/ EXCEPT backend/app/ai/; backend tests; docs/API_CONTRACT.md; docs/openapi.json; docs/coordination/backend.md |
 | Sonia / Antigravity | feature/frontend | frontend/; docs/coordination/frontend.md |
-| Rohan / Codex | feature/ai | backend/app/ai/; tests/ai/; backend/app/ai/README.md; docs/coordination/ai.md; shared setup/integration |
+| Rohan / Codex | feature/ai | backend/app/ai/; tests/ai/; docs/coordination/ai.md; shared setup/integration |
 
 Atif owns API routers and AI route wiring. Rohan owns the callable AI functions. Do not create separate AI servers. Sonia does not modify backend/ or the canonical contract directly. Baseline setup changes by Rohan are allowed before these branches diverge.
 
