@@ -1,6 +1,16 @@
-# API contract — seed v0.1, not yet accepted
+# API contract — v0.2 PROPOSED by Atif, awaiting Sonia's review
 
-Canonical machine contract: docs/openapi.json. Atif owns it; Sonia reviews it using docs/coordination/README.md. The Markdown defines workflow/access semantics that JSON schemas alone cannot express. Both must agree. These are proposed endpoints, not currently running code.
+Canonical machine contract: docs/openapi.json. Atif owns it; Sonia reviews it using docs/coordination/README.md. The Markdown defines workflow/access semantics that JSON schemas alone cannot express. Both must agree. Implementation lives in backend/ on feature/backend; see docs/coordination/backend.md for what is actually running and tested.
+
+## v0.2 backend decisions (routine details, no wire-shape change from v0.1)
+
+- `ticket_number` is `CMP-` plus the zero-padded database ID, e.g. `CMP-000042`, enforced unique in PostgreSQL.
+- `image_url` is `null` until an upload succeeds, then the relative path `/api/v1/complaints/{id}/image`. Fetch it with the bearer token and show it as a blob URL; it is not a public link.
+- `location` must exactly equal a `name` from `GET /locations`, otherwise 422. Use a dropdown so insights do not fragment on spelling.
+- `GET /complaints` returns newest first. `mine=true` limits to the caller's own reports. Staff without `mine` see their departmental queue plus their own reports.
+- Access tokens are HS256 bearer tokens valid for 8 hours; an expired/invalid token returns 401.
+- Seeded demo accounts (fictional institution `DEMO`, password `demo1234` for all, local prototype only): `student@demo.edu` (STUDENT), `student2@demo.edu` (STUDENT), `it.staff@demo.edu` (STAFF, IT), `facilities.staff@demo.edu` (STAFF, Facilities), `coordinator@demo.edu` (COORDINATOR), `admin@demo.edu` (ADMIN).
+- `POST /complaints/{id}/analyze` returns `source: "rules"` with `needs_review: true` manual-review output until Rohan's `app.ai.analyze_complaint` exists; the route never changes the ticket.
 
 ## Wire conventions
 
