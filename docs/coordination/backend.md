@@ -1,6 +1,6 @@
 # Atif / backend
 
-State: PROPOSED (awaiting Sonia's review)
+State: FROZEN. Sonia ACCEPTED the same hash in origin/feature/frontend 1f0c800; verified on 2026-10-24 that origin/feature/backend:docs/openapi.json hashes to it. Further changes go through the same review process.
 Contract SHA-256 (docs/openapi.json, LF): d32af66a4cab39db4c5e56f7dd5e4f34ff70b10a21cac714eb6d756f5225b62c
 Contract version: 0.2.0
 Branch: feature/backend
@@ -37,13 +37,20 @@ AI wiring: routes call `app.ai.analyze_complaint` and `app.ai.generate_admin_rep
 - Runtime: `python scripts/check_contract.py work/runtime-openapi.json` → "Runtime exposes every seed operation".
 - Restart persistence: created CMP-000001 via curl, restarted uvicorn, ticket still listed.
 
+## Integration with Sonia's frontend (origin/feature/frontend 1f0c800, run by Atif on 2026-10-24)
+
+- Checked out read-only in a temporary worktree; no frontend files changed. `npm install && npm run build` → built (208.66 kB JS).
+- Ran the backend (uvicorn :8000) and `vite --port 5173` with its `/api` proxy, then used the UI in a browser:
+  student submitted a Wi-Fi report → CMP-000002 row in PostgreSQL, rule-routed to IT → admin got rules-labelled AI suggestions and assigned IT Staff → IT staff marked IN_PROGRESS, then RESOLVED with a note and the verification checkbox → student submitted a 5★ rating (feedback row in DB) → `/dashboard/stats` via the proxy: resolved_count 1, avg_resolution_hours 0.03 (2 min 5 s actual).
+- Server log during the run: one non-2xx response, the expected 404 from `GET /complaints/2/feedback` before feedback existed.
+
 ## Gaps / not yet verified
 
 - Not run on Windows yet; commands in backend/README.md are written for it but untested there.
-- No frontend integration yet (Sonia has not pushed; frontend.md is NOT_STARTED at cde640d).
+- Image upload and Insights/report were exercised by API tests, not through the UI in this run.
 - Runtime schemas were compared by operation presence only, not field by field.
 - Image check uses file signatures, not full decoding.
 
-Review responses: none yet (checked origin/feature/frontend once at cde640d).
+Review responses: ACCEPTED d32af66a… (origin/feature/frontend 1f0c800). No changes requested.
 
 Next: when Sonia's review lands, address it and re-propose if the contract changes; help integrate the first real frontend submission.
