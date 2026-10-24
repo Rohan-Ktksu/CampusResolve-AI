@@ -29,7 +29,7 @@ Built for **REVA Problem Statement #3** (campus issue reporting and resolution) 
 
 Log in with any [demo account](#-demo-accounts) (password `demo1234`). Please use made-up data only.
 
-> **Always on.** Hosted free on Vercel with a Neon PostgreSQL database (both in Singapore). It updates automatically whenever `main` changes; see [Deploy](#%EF%B8%8F-deploy-free-vercel--neon). The first request after a quiet spell can take a few seconds while the server wakes up.
+> **Always on.** Hosted free on Vercel with a Neon PostgreSQL database (both in Singapore). It updates automatically whenever `main` changes; see [Deploy](#-deploy-free-vercel--neon). The first request after a quiet spell can take a few seconds while the server wakes up.
 
 ## ✨ What it does
 
