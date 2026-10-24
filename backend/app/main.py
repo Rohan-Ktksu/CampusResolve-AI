@@ -645,7 +645,7 @@ def config_for_query(conn, me):
     return cats, depts, locs
 
 
-def run_query(conn, me, plan: QueryPlan) -> tuple[list[dict], dict, list[str]]:
+def run_query(conn, me, plan: QueryPlan) -> tuple[list[dict], dict, list[dict]]:
     if plan.from_ > plan.to or (plan.to - plan.from_).days + 1 > 366:
         fail(422, 'Date range must run forwards and cover at most 366 days')
     where = ['c.institution_id = %(ins)s', 'NOT c.archived', 'c.created_at >= %(start)s', 'c.created_at < %(end)s']
