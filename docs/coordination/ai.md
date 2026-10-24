@@ -44,7 +44,7 @@ Rohan's updated Windows suite: 22 unit tests passed (19 existing + 3 regression 
 
 ## v0.3 — admin chatbox, common issues, NLTK, new categories — 24 October 2026
 
-Requested by Rohan (lead/repository owner), who asked for this change to cover both backend and frontend in one PR, implemented with Claude Code on branch `feature/admin-nlp-query`.
+Requested by Rohan (lead/repository owner), who asked for this change to cover both backend and frontend in one PR, implemented on branch `feature/admin-nlp-query`.
 
 State: v0.3 PROPOSED, not frozen. Contract SHA-256 (docs/openapi.json, LF): `d726d73cd0401c2ca413fdf10d58cd9b8d80cc484044c33a64111220cb6ab720`, version 0.3.0. Additive: `POST /dashboard/query`, `GET /dashboard/common-issues`, `AdminReport.common_issues`, source `nlp`. Atif's backend.md and Sonia's frontend.md were not edited; their review of v0.3 happens on the PR.
 
