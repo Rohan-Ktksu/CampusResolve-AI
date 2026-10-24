@@ -12,11 +12,14 @@ from nltk.util import ngrams
 from .nlp import STOPWORDS, content_stems, stem, tokens
 from .ticket_rules import action_for_category
 
-# Words every complaint uses; they say nothing about which problem it is.
+# Words every complaint uses, or state words ("not", "broken", "missing") shared by unrelated problems;
+# they say nothing about which problem it is.
 GENERIC = {stem(w) for w in """
 complaint complain issue issues problem problems please fix fixed help request report reported need needs needed kindly
 sir madam mam again also there here someone anyone thing things time times work working regard regarding happen happening
 since still yet lot lots really very bad worse worst good proper properly campus college student students room area
+not no never none missing broken damaged torn empty late slow skipped working stopped again keeps keep
+morning evening night afternoon hour hours minute minutes
 """.split()}
 MAX_ISSUES = 5
 UNIGRAM_WEIGHT = 0.75  # a shared two-word phrase ("water leak") beats a lone word with the same count

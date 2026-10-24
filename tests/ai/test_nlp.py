@@ -163,6 +163,12 @@ class CommonIssueTests(unittest.TestCase):
         tickets = [ticket(1, "Problem in Hostel 1", 1), ticket(2, "Issue at Hostel 1, please help", 2)]
         self.assertEqual([], find_common_issues(tickets, LOCATIONS))
 
+    def test_state_words_alone_do_not_group_unrelated_problems(self):
+        tickets = [ticket(1, "Fan not working in room", 1), ticket(2, "Lift not working since morning", 2),
+                   ticket(3, "Room allotment not updated", 3), ticket(4, "Projector remote missing", 4),
+                   ticket(5, "Library book missing", 5)]
+        self.assertEqual([], find_common_issues(tickets, LOCATIONS))
+
     def test_single_reporter_repeating_gets_contact_suggestion(self):
         tickets = [ticket(1, "Wifi router down", 7), ticket(2, "Wifi router down again", 7)]
         issue = find_common_issues(tickets, LOCATIONS)[0]

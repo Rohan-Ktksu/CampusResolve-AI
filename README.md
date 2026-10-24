@@ -10,7 +10,7 @@
 ![AI](https://img.shields.io/badge/AI-local%20NLTK%2C%20no%20paid%20APIs-8A2BE2)
 ![Cost](https://img.shields.io/badge/running%20cost-%E2%82%B90-brightgreen)
 
-[**▶ Live demo**](#-live-demo) · [Features](#-what-it-does) · [How it works](#-how-it-works) · [Journey](#-the-journey) · [Team](#-team--contributions) · [Run it locally](#-run-it-locally)
+[**▶ Live demo**](#-live-demo) · [Versions](#-versions) · [Features](#-what-it-does) · [How it works](#-how-it-works) · [Journey](#-the-journey) · [Team](#-team--contributions) · [Run it locally](#-run-it-locally)
 
 </div>
 
@@ -114,6 +114,18 @@ The whole build happened on **24 October 2026**, by three people working in para
 
 **Rules we kept throughout:** no paid APIs, hosting or CI; synthetic data only; nothing presented as a trained model; every test result recorded honestly in [`docs/coordination/`](docs/coordination/).
 
+## 🗂 Versions
+
+Every release and update, newest first. Full details in [CHANGELOG.md](CHANGELOG.md).
+
+| Version | Date | What changed | PRs | API contract | Runs on |
+|---|---|---|---|---|---|
+| **v0.4.1** | 2026-10-24 | 41 synthetic demo complaints across 14 categories (resolved, in progress, rejected, with feedback); 6 more demo student accounts; common issues ignore state words like "not" or "broken" | this update | v0.3 (unchanged) | Vercel + Neon |
+| **v0.4.0** | 2026-10-24 | Free always-on hosting on Vercel + Neon (Singapore); photos stored in PostgreSQL; safe concurrent start-up; CHANGELOG | [#7](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/7), [#8](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/8), [#9](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/9) | v0.3 (unchanged) | Vercel + Neon |
+| **v0.3.0** | 2026-10-24 | NLTK assistant; Ask & Reports chatbox; common issues; 8 new categories and 3 departments; README rewrite; `main` protected | [#5](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/5) | v0.3 `d726d73c…` (additive) | Cloudflare tunnel |
+| **v0.2.0** | 2026-10-24 | Working prototype: FastAPI + PostgreSQL backend, React frontend, rules-based AI, live demo | [#1](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/1)–[#4](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/4) | v0.2 `d32af66a…` (frozen) | Cloudflare tunnel |
+| **v0.1.0** | 2026-10-24 | Team handoff: master plan, ownership rules, seed API and AI contracts | — | v0.1 seed | — |
+
 ## 👥 Team & contributions
 
 | | Role | Owned area | Highlights |
@@ -129,6 +141,7 @@ The whole build happened on **24 October 2026**, by three people working in para
 | [#3](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/3) | Frontend: React workflow, admin dashboard, E2E verification | Sonia |
 | [#4](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/4) | README for the working prototype + live demo link | Atif |
 | [#5](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/5) | Admin chatbox, common issues, NLTK analysis (contract v0.3) | Rohan |
+| [#7](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/7), [#8](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/8), [#9](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/9) | Free Vercel + Neon deployment, CHANGELOG, permanent live link | Rohan |
 
 Each person's commands, results and known gaps are in [`docs/coordination/`](docs/coordination/) ([backend](docs/coordination/backend.md) · [frontend](docs/coordination/frontend.md) · [AI](docs/coordination/ai.md)).
 
@@ -173,7 +186,7 @@ Fictional institution `DEMO`. Password `demo1234` for every account (local proto
 
 | Email | Role |
 |---|---|
-| student@demo.edu, student2@demo.edu | Student |
+| student@demo.edu, student2@demo.edu, student3@demo.edu … student8@demo.edu | Student |
 | it.staff@demo.edu | Staff, IT |
 | facilities.staff@demo.edu | Staff, Facilities |
 | coordinator@demo.edu | Coordinator |

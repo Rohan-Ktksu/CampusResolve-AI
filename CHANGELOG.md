@@ -5,6 +5,15 @@ Every version of CampusResolve AI, newest first. Each entry says what changed, w
 - **Versions:** each released version gets a Git tag (`v0.3.0`, …) on the `main` commit that shipped it.
 - **Contract versions:** the API contract has its own version and SHA-256, recorded in [`docs/coordination/`](docs/coordination/).
 
+## v0.4.1 — Demo data · 2026-10-24
+
+PR: `docs/versions-and-demo-data` · by Rohan
+
+- **Demo data:** `scripts/seed_demo_data.py` loads 41 synthetic complaints through the real API: recurring issues (water leaks in Hostel 1, stale food, library Wi-Fi drops, projectors) and a spread of statuses (15 resolved with feedback, 8 in progress, 2 rejected, the rest new). It refuses to run twice.
+- **Demo accounts:** 6 more fictional students (`student3`–`student8@demo.edu`, password `demo1234`), so issues show several distinct reporters. Seed accounts are now added when missing, so existing databases get them on the next start.
+- **Common issues:** state and time words ("not", "missing", "broken", "morning") no longer form issues on their own, so unrelated problems aren't grouped together.
+- **README:** a versions table.
+
 ## v0.4.0 — Free cloud deployment (Vercel + Neon) · 2026-10-24
 
 PRs [#7](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/7) (merge `26f7db1`) and the follow-up build fix · by Rohan
