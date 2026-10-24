@@ -4,6 +4,13 @@ Campus issue reporting and resolution hackathon project led by **Rohan Sai (@Roh
 
 Working prototype. Students and staff report campus issues with an optional photo and get a ticket number (`CMP-000042`). Admins and coordinators route tickets to departments. Department staff move them through Submitted → In Progress → Resolved/Rejected. Reporters rate the outcome, and the admin dashboard shows real resolution-time analytics. Rules-based assistance suggests a category, department, priority and next steps for each ticket, and an optional AI Insights tab produces evidence-based reports. All suggestions are labelled `source: rules`; no language model is used.
 
+## Live demo (temporary)
+
+- App: https://literacy-saturn-done-licence.trycloudflare.com/app
+- Fictional college portal with the embedded app: https://literacy-saturn-done-licence.trycloudflare.com/demo-portal
+
+This is a free Cloudflare quick tunnel to Sonia's local machine. It works only while her PostgreSQL, backend, frontend and `cloudflared` processes are running. The address changes whenever the tunnel restarts, so update this section when that happens. Log in with the demo accounts below, and use synthetic data only.
+
 ## Quick start (local, free)
 
 Requires Python 3.12+, Node.js/npm and a local PostgreSQL 14+.
