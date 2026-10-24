@@ -44,10 +44,11 @@ def verify_password(password: str, stored: str) -> bool:
     return hmac.compare_digest(candidate, digest)
 
 
-DEPARTMENTS = ['IT', 'Facilities', 'Housekeeping', 'Academics']
+DEPARTMENTS = ['IT', 'Facilities', 'Housekeeping', 'Academics', 'Transport']
 CATEGORIES = [('Wi-Fi / Network', 'IT'), ('Classroom Equipment', 'IT'), ('Electrical', 'Facilities'),
-              ('Plumbing', 'Facilities'), ('Cleanliness', 'Housekeeping'), ('Other', None)]
-LOCATIONS = ['Block A / Classrooms', 'Block B / Lab 204', 'Library', 'Hostel 1', 'Cafeteria', 'Sports Complex', 'Admin Block']
+              ('Plumbing', 'Facilities'), ('Cleanliness', 'Housekeeping'), ('Transport', 'Transport'), ('Other', None)]
+LOCATIONS = ['Block A / Classrooms', 'Block B / Lab 204', 'Library', 'Hostel 1', 'Cafeteria', 'Sports Complex', 'Admin Block',
+             'Main Gate / Bus Stop']
 USERS = [('student@demo.edu', 'Demo Student', 'STUDENT', None), ('student2@demo.edu', 'Second Student', 'STUDENT', None),
          ('it.staff@demo.edu', 'IT Staff', 'STAFF', 'IT'), ('facilities.staff@demo.edu', 'Facilities Staff', 'STAFF', 'Facilities'),
          ('coordinator@demo.edu', 'Demo Coordinator', 'COORDINATOR', None), ('admin@demo.edu', 'Demo Admin', 'ADMIN', None)]
@@ -57,15 +58,20 @@ DEMO_PASSWORD = 'demo1234'  # fictional local-only seed accounts, documented in 
 def init_db():
     with connect() as conn:
         conn.execute((Path(__file__).parent / 'schema.sql').read_text(encoding='utf-8'))
-        if conn.execute('SELECT 1 FROM institutions').fetchone():
-            return
-        inst = conn.execute("INSERT INTO institutions (code, name) VALUES ('DEMO', 'Demo Institute of Technology (fictional)') RETURNING id").fetchone()['id']
-        dept = {name: conn.execute('INSERT INTO departments (institution_id, name) VALUES (%s, %s) RETURNING id', (inst, name)).fetchone()['id']
-                for name in DEPARTMENTS}
+        created = conn.execute("""INSERT INTO institutions (code, name) VALUES ('DEMO', 'Demo Institute of Technology (fictional)')
+                                  ON CONFLICT (code) DO NOTHING RETURNING id""").fetchone()
+        inst = conn.execute("SELECT id FROM institutions WHERE code = 'DEMO'").fetchone()['id']
+        # Config is ensured on every start so seed additions (e.g. Transport) reach existing demo DBs; tickets are never touched.
+        for name in DEPARTMENTS:
+            conn.execute('INSERT INTO departments (institution_id, name) VALUES (%s, %s) ON CONFLICT DO NOTHING', (inst, name))
+        dept = {r['name']: r['id'] for r in conn.execute('SELECT id, name FROM departments WHERE institution_id = %s', (inst,))}
         for name, d in CATEGORIES:
-            conn.execute('INSERT INTO categories (institution_id, name, default_department_id) VALUES (%s, %s, %s)', (inst, name, dept.get(d)))
+            conn.execute('INSERT INTO categories (institution_id, name, default_department_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING',
+                         (inst, name, dept.get(d)))
         for name in LOCATIONS:
-            conn.execute('INSERT INTO locations (institution_id, name) VALUES (%s, %s)', (inst, name))
+            conn.execute('INSERT INTO locations (institution_id, name) VALUES (%s, %s) ON CONFLICT DO NOTHING', (inst, name))
+        if not created:
+            return
         for email, name, role, d in USERS:
             uid = conn.execute('INSERT INTO users (email, name, password_hash) VALUES (%s, %s, %s) RETURNING id',
                                (email, name, hash_password(DEMO_PASSWORD))).fetchone()['id']
