@@ -356,7 +356,7 @@ def upload_image(id: int, file: UploadFile = File(...), me=Depends(current_user)
         fail(409, 'Images can only be attached while SUBMITTED')
     data = file.file.read(MAX_UPLOAD_BYTES + 1)
     if len(data) > MAX_UPLOAD_BYTES:
-        fail(422, 'Image must be at most 5 MiB')
+        fail(422, f'Image must be at most {MAX_UPLOAD_BYTES / 1048576:g} MiB')
     # Trust the file signature, not the client-declared content type.
     if data.startswith(b'\x89PNG\r\n\x1a\n'):
         ext, mime = 'png', 'image/png'
@@ -364,9 +364,10 @@ def upload_image(id: int, file: UploadFile = File(...), me=Depends(current_user)
         ext, mime = 'jpg', 'image/jpeg'
     else:
         fail(422, 'Image must be a JPEG or PNG file')
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     name = f'{id}-{secrets.token_hex(8)}.{ext}'
-    (UPLOAD_DIR / name).write_bytes(data)
+    # Stored in PostgreSQL, not on disk: serverless hosts (Vercel) keep no files between requests.
+    conn.execute('''INSERT INTO complaint_images (complaint_id, data) VALUES (%s, %s)
+                    ON CONFLICT (complaint_id) DO UPDATE SET data = EXCLUDED.data''', (id, data))
     old = c['image_path']
     c = conn.execute('UPDATE complaints SET image_path = %s, image_type = %s, updated_at = now() WHERE id = %s RETURNING *',
                      (name, mime, id)).fetchone()
@@ -380,9 +381,12 @@ def upload_image(id: int, file: UploadFile = File(...), me=Depends(current_user)
          responses={200: {'content': {'image/jpeg': {}, 'image/png': {}}}})
 def read_image(id: int, me=Depends(current_user), conn=Depends(get_conn)):
     c = load(conn, me, id)
-    if not c['image_path'] or not (UPLOAD_DIR / c['image_path']).is_file():
-        fail(404, 'No image attached')
-    return FileResponse(UPLOAD_DIR / c['image_path'], media_type=c['image_type'])
+    row = conn.execute('SELECT data FROM complaint_images WHERE complaint_id = %s', (id,)).fetchone()
+    if row and c['image_path']:
+        return Response(bytes(row['data']), media_type=c['image_type'])
+    if c['image_path'] and (UPLOAD_DIR / c['image_path']).is_file():  # uploaded before images moved to the database
+        return FileResponse(UPLOAD_DIR / c['image_path'], media_type=c['image_type'])
+    fail(404, 'No image attached')
 
 
 @api.patch('/complaints/{id}/assign', response_model=Complaint)
