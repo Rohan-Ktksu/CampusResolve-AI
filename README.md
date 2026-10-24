@@ -118,7 +118,7 @@ The whole build happened on **24 October 2026**, by three people working in para
 
 | | Role | Owned area | Highlights |
 |---|---|---|---|
-| **Rohan Sai** ([@Rohan-Ktksu](https://github.com/Rohan-Ktksu)) | Project lead, AI | `backend/app/ai/`, `tests/ai/`, setup & integration | Master plan and team rules; AI ticket triage and reports; v0.3 NLTK chatbox and common issues (with Claude Code); reviews and merges |
+| **Rohan Sai** ([@Rohan-Ktksu](https://github.com/Rohan-Ktksu)) | Project lead, AI | `backend/app/ai/`, `tests/ai/`, setup & integration | Master plan and team rules; AI ticket triage and reports; v0.3 NLTK chatbox and common issues; free Vercel + Neon deployment; reviews and merges |
 | **Atif** ([@Atif-Ur-Rehman](https://github.com/Atif-Ur-Rehman)) | Backend | `backend/` (except `ai/`), API contract | Contract v0.2; FastAPI + PostgreSQL API (31 operations, 17 tests); AI route wiring and fallbacks; README and live demo link |
 | **Sonia** ([@sonia449-prog](https://github.com/sonia449-prog)) | Frontend | `frontend/` | Contract reviews (v0.2, v0.3); Figma wireframe; React UI for all roles; Windows end-to-end verification; hosts the live demo |
 
@@ -202,6 +202,7 @@ cd frontend; npm run build; node test_frontend_contract.mjs
   - **v0.3:** additive. Accepted by frontend (SHA-256 `d726d73c…`); backend review pending.
 - [docs/AI_CONTRACT.md](docs/AI_CONTRACT.md): AI function interfaces, validation and fallbacks.
 - [docs/coordination/README.md](docs/coordination/README.md): how contract changes are proposed and accepted through Git.
+- [CHANGELOG.md](CHANGELOG.md): every version, what changed and where it runs.
 - [AGENTS.md](AGENTS.md): ownership, branches and rules for every contributor and coding assistant.
 - [docs/WINDOWS_SETUP.md](docs/WINDOWS_SETUP.md): Windows setup for teammates.
 
