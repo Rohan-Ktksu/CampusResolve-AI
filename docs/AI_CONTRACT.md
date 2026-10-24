@@ -1,4 +1,4 @@
-# In-process assistance contract — proposed
+# In-process assistance contract — rules implementation
 
 Owner: Rohan. Backend routes: Atif. Default AI_MODE=rules, no external requests or paid inference. Rules are not represented as trained AI. A future local model is optional, not required to run.
 
@@ -35,6 +35,12 @@ No complaints means sample_size 0 and an explicit insufficient-data summary with
 
 ## Integration
 
-Atif imports these functions from app.ai once implemented. The baseline package exports no functions yet; until Rohan's module exists, Atif keeps optional AI routes behind a local manual-review result rather than breaking application startup. Do not duplicate the classifier in backend routers.
+The feature/ai implementation exports both functions from app.ai with these exact signatures. Atif's frozen v0.2 backend already discovers them and validates their output before returning it. If either function fails or its output is invalid, his route retains the existing labelled fallback. No API path, wire model, permission, or ticket workflow change is required.
+
+The report input has no authorized department mapping, so report recommendations intentionally return department_id=null. The report can suggest the type of team/action in prose, but must not invent an institution department ID. Ticket suggestions do use the supplied category routing map.
+
+Rules match configured labels and explicit issue phrases. Multiple issue types, unavailable categories, inactive configuration, and missing department maps require review. Infrastructure can cover equipment/electrical/plumbing only when the more specific category is absent. Priority is a literal triage signal, not a safety determination. Staff always confirms handling and actual resolution. No confidence/accuracy percentage is claimed.
+
+Run dependency-free synthetic checks with `python -m unittest discover -s tests/ai -v`. For exact implemented behavior, limitations, and optional backend adapter verification, see backend/app/ai/README.md. This is a tested deterministic assistance baseline, not a trained or local language model.
 
 AI callable proposals/review go in docs/coordination/ai.md. Wire changes are reflected in the canonical API contract and reviewed by Sonia. Use synthetic examples for meaningful checks of unknown inputs, inactive/unmapped categories, no data, missing comparison periods, and invalid model output.
