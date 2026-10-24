@@ -628,3 +628,262 @@ body {
   color: var(--text-muted);
   font-size: 0.9rem;
 }
+
+/* Admin chatbox & report table */
+.query-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(0, 2fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .query-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 460px;
+  overflow-y: auto;
+  margin-bottom: 0.75rem;
+}
+
+.example-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.example-list .btn {
+  text-align: left;
+}
+
+.chat-bubble {
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.86rem;
+  max-width: 92%;
+}
+
+.chat-user {
+  align-self: flex-end;
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.chat-assistant {
+  align-self: flex-start;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.chat-assistant.active {
+  border-color: var(--primary);
+  outline: 2px solid #bfdbfe;
+}
+
+.chat-meta {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.chat-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  border: 1px solid #bfdbfe;
+  font-size: 0.8rem;
+}
+
+.chip button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  color: var(--text-secondary);
+  padding: 0 0.1rem;
+}
+
+.chip-static {
+  background: var(--surface-muted);
+  border-color: var(--border-subtle);
+}
+
+.query-summary {
+  background: var(--primary-soft);
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.9rem;
+}
+
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.suggestion {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.suggestion-evidence {
+  color: var(--text-secondary);
+  margin: 0.2rem 0;
+}
+
+.table-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.table-toolbar .form-input {
+  max-width: 260px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.report-table th,
+.report-table td {
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.45rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.report-table th button {
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  color: var(--text);
+}
+
+.cell-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.cell-bar .bar-track {
+  flex: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Common issues (dashboard, report, chat) */
+.issue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.issue-headline {
+  background: var(--warning-soft);
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 0.7rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+.issue-kicker {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--warning);
+  margin-right: 0.35rem;
+}
+
+.issue-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.7rem 0.8rem;
+  font-size: 0.86rem;
+}
+
+.issue-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.issue-name {
+  font-size: 0.98rem;
+  text-transform: capitalize;
+}
+
+.issue-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.issue-meta {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+
+.issue-suggestions {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+}

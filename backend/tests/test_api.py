@@ -149,7 +149,7 @@ def test_unique_ticket_numbers_under_concurrency(client, h):
 
 def test_analyze_and_insights(client, h):
     r = client.post('/api/v1/complaints/2/analyze', headers=h['admin'])
-    assert r.status_code == 200 and r.json()['source'] in ('rules', 'local_model')
+    assert r.status_code == 200 and r.json()['source'] in ('rules', 'nlp', 'local_model')
     assert client.post('/api/v1/complaints/2/analyze', headers=h['student']).status_code in (403, 404)
     today = date.today().isoformat()
     ins = client.get(f'/api/v1/dashboard/insights?from={today}&to={today}', headers=h['coordinator']).json()
@@ -157,6 +157,6 @@ def test_analyze_and_insights(client, h):
     assert client.get('/api/v1/dashboard/insights?from=2026-01-02&to=2026-01-01', headers=h['admin']).status_code == 422
     assert client.get('/api/v1/dashboard/insights?from=2024-01-01&to=2026-01-01', headers=h['admin']).status_code == 422
     rep = client.post('/api/v1/dashboard/insights/report', json={'from': today, 'to': today}, headers=h['admin']).json()
-    assert rep['source'] == 'rules' and rep['sample_size'] == ins['sample_size']
+    assert rep['source'] in ('rules', 'nlp') and rep['sample_size'] == ins['sample_size']
     empty = client.post('/api/v1/dashboard/insights/report', json={'from': '2020-01-01', 'to': '2020-01-02'}, headers=h['admin']).json()
     assert empty['sample_size'] == 0 and empty['recommendations'] == []

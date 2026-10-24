@@ -2,7 +2,7 @@
 
 Campus issue reporting and resolution hackathon project led by **Rohan Sai (@Rohan-Ktksu)**, with **Atif (@Atif-Ur-Rehman)** on backend and **Sonia (@sonia449-prog)** on frontend. SunoSetu is a suggested future name; no rename decision is assumed.
 
-Working prototype. Students and staff report campus issues with an optional photo and get a ticket number (`CMP-000042`). Admins and coordinators route tickets to departments. Department staff move them through Submitted → In Progress → Resolved/Rejected. Reporters rate the outcome, and the admin dashboard shows real resolution-time analytics. Rules-based assistance suggests a category, department, priority and next steps for each ticket, and an optional AI Insights tab produces evidence-based reports. All suggestions are labelled `source: rules`; no language model is used.
+Working prototype. Students and staff report campus issues with an optional photo and get a ticket number (`CMP-000042`). Admins and coordinators route tickets to departments. Department staff move them through Submitted → In Progress → Resolved/Rejected. Reporters rate the outcome, and the admin dashboard shows real resolution-time analytics. Local NLTK keyword analysis suggests a category, department, priority and next steps for each ticket. Admins can ask questions in plain English in the **Ask & Reports** tab and get an editable report table with suggestions, and the dashboard groups complaint descriptions into **common issues** (what is happening, how many times, how many students). Suggestions are labelled `source: nlp` (or `rules` for the fallback); no language model or paid service is used.
 
 ## Live demo (temporary)
 
@@ -49,13 +49,13 @@ Fictional institution `DEMO`, password `demo1234` for every account (local proto
 | coordinator@demo.edu | Coordinator |
 | admin@demo.edu | Admin |
 
-Seeded departments: IT, Facilities, Housekeeping, Academics, Transport. Categories route to their configured department; tickets without a category go to admin review.
+Seeded departments: IT, Facilities, Housekeeping, Academics, Transport, Food Services, Hostel Office, Campus Security. Seeded categories: Wi-Fi / Network, Classroom Equipment, Electrical, Plumbing, Cleanliness, Transport, Infrastructure, Food / Canteen, Hostel, Safety / Security, Housekeeping, Library, Academics, Sports, Other. Categories route to their configured department; tickets without a category go to admin review. Admins can add more under Categories & Departments.
 
 ## Tests
 
 ```powershell
 python scripts/check_contract.py                 # API contract sanity check
-python -m unittest discover -s tests/ai          # rules-based assistance
+python -m unittest discover -s tests/ai          # NLTK assistance, chatbox parser, common issues
 cd backend; python -m pytest -q                  # API + AI integration against campusresolve_test (wiped each run)
 cd frontend; npm run build; node test_frontend_contract.mjs
 ```
@@ -74,7 +74,7 @@ All three feature branches are merged into `main`. Further changes use short-liv
 
 ## No-spend baseline
 
-No paid inference, hosting, cloud database, automated AI workflow, or new subscription is required. Everything runs locally on PostgreSQL with explicitly labelled rules-based suggestions. Existing coding-assistant plan limits still apply. No billing or overage is enabled by these files.
+No paid inference, hosting, cloud database, automated AI workflow, or new subscription is required. Everything runs locally on PostgreSQL with explicitly labelled NLTK keyword suggestions (`pip install nltk`, no data downloads). Existing coding-assistant plan limits still apply. No billing or overage is enabled by these files.
 
 ## Main documents
 
@@ -86,7 +86,7 @@ No paid inference, hosting, cloud database, automated AI workflow, or new subscr
 
 ## Limitations
 
-Prototype for a hackathon demo: one fictional institution, seeded logins with no SSO or self-registration, and keyword rules rather than a trained model. Tokens are kept in browser sessionStorage. Not production-hardened.
+Prototype for a hackathon demo: one fictional institution, seeded logins with no SSO or self-registration, and NLTK keyword analysis rather than a trained model. The chatbox understands English questions about counts, lists, resolution time, grouping and dates; anything else falls back to totals with a warning. Tokens are kept in browser sessionStorage. Not production-hardened.
 
 ## Attribution
 

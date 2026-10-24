@@ -38,7 +38,9 @@ const requiredEndpoints = [
   '/dashboard/stats',
   '/analyze',
   '/dashboard/insights',
-  '/dashboard/insights/report'
+  '/dashboard/insights/report',
+  '/dashboard/query',
+  '/dashboard/common-issues'
 ];
 
 for (const ep of requiredEndpoints) {

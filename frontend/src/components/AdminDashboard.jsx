@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api.js';
 import TicketWorkspace from './TicketWorkspace.jsx';
+import AdminQueryChat from './AdminQueryChat.jsx';
+import CommonIssuesPanel, { CommonIssueList } from './CommonIssues.jsx';
 
 function formatDefaultDates() {
   const now = new Date();
@@ -288,13 +290,20 @@ export default function AdminDashboard({
         >
           3. AI Insights (Optional Tab)
         </button>
+        <button
+          type="button"
+          className={`sub-tab ${subTab === 'ask' ? 'active' : ''}`}
+          onClick={() => setSubTab('ask')}
+        >
+          4. Ask &amp; Reports
+        </button>
         {user.role === 'ADMIN' && (
           <button
             type="button"
             className={`sub-tab ${subTab === 'config' ? 'active' : ''}`}
             onClick={() => setSubTab('config')}
           >
-            4. Categories &amp; Departments (ADMIN)
+            5. Categories &amp; Departments (ADMIN)
           </button>
         )}
       </div>
@@ -400,6 +409,8 @@ export default function AdminDashboard({
 
       {/* TAB 2: P0 Resolution Analytics */}
       {subTab === 'analytics' && (
+        <>
+        <CommonIssuesPanel />
         <div className="card">
           <div className="card-header">
             <div>
@@ -490,6 +501,7 @@ export default function AdminDashboard({
             </>
           ) : null}
         </div>
+        </>
       )}
 
       {/* TAB 3: Optional AI Insights & On-Demand Admin Report */}
@@ -721,7 +733,7 @@ export default function AdminDashboard({
                 </div>
                 <span className="badge source-badge">
                   source: {report.source}{' '}
-                  {report.source === 'rules' ? '(Rules-based local synthesis)' : '(Local model)'}
+                  {{ rules: '(Rules-based local synthesis)', nlp: '(NLTK text analysis)' }[report.source] || '(Local model)'}
                 </span>
               </div>
 
@@ -788,12 +800,20 @@ export default function AdminDashboard({
                   No recommendations generated (insufficient complaint volume in this period).
                 </div>
               )}
+
+              <h4 className="card-title" style={{ fontSize: '0.95rem', margin: '1rem 0 0.6rem' }}>
+                Common Issues From Complaint Descriptions ({report.common_issues?.length || 0})
+              </h4>
+              <CommonIssueList issues={report.common_issues} />
             </div>
           )}
         </div>
       )}
 
       {/* TAB 4: Admin Categories & Departments Configuration */}
+      {/* TAB 4: Admin chatbox questions -> editable report table */}
+      {subTab === 'ask' && <AdminQueryChat categories={categories} departments={departments} />}
+
       {subTab === 'config' && user.role === 'ADMIN' && (
         <div className="form-row">
           {/* Departments Management */}
