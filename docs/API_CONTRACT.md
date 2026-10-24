@@ -47,7 +47,7 @@ Additive only; every v0.2 operation and shape still works. Admin/coordinator onl
 | GET /complaints/{id} | Reporter or authorized operational staff |
 | PATCH /complaints/{id} | Reporter edits title/description/location/category while SUBMITTED; ADMIN/COORDINATOR may edit category/priority while nonterminal; staff cannot self-promote authority through fields |
 | DELETE /complaints/{id} | ADMIN soft archive; 204; preserve history |
-| POST /complaints/{id}/image | Original reporter while SUBMITTED; actual JPEG/PNG, <=5 MiB; replace one attachment, return updated complaint |
+| POST /complaints/{id}/image | Original reporter while SUBMITTED; actual JPEG/PNG, <= MAX_UPLOAD_BYTES (default 5 MiB; 4 MiB on the Vercel demo); replace one attachment, return updated complaint |
 | GET /complaints/{id}/image | Same visibility as complaint; authenticated binary fetch; no public uploads folder |
 | PATCH /complaints/{id}/assign | ADMIN/COORDINATOR, nonterminal only; department required, staff optional and belongs to department |
 | PATCH /complaints/{id}/status | ADMIN/COORDINATOR or authorized assigned-department staff; workflow below |

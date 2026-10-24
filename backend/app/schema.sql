@@ -95,3 +95,8 @@ CREATE TABLE IF NOT EXISTS feedback (
   comment text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS complaint_images (
+  complaint_id int PRIMARY KEY REFERENCES complaints(id),
+  data bytea NOT NULL
+);

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "cd frontend && npm ci",
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/dist",
+  "regions": ["sin1"],
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "backend/app/**",
+      "excludeFiles": "{frontend/**,docs/**,reference/**,tests/**,backend/tests/**,prompts/**}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

@@ -158,6 +158,15 @@ Requires Python 3.12+, Node.js/npm and PostgreSQL 14+. Everything is free and lo
 
    Then open `/app`, the embedded view `/app?embed=1`, or the portal `/demo-portal`.
 
+## ☁️ Deploy (free: Vercel + Neon)
+
+The repo deploys as one Vercel project: the React app as static files and the FastAPI backend as a Python function (`api/index.py`), with PostgreSQL on Neon. Photos are stored in the database because serverless functions keep no files.
+
+1. Create a free Neon project (Singapore region) and copy its connection string.
+2. Import the GitHub repo into Vercel. `vercel.json` sets the build, the `/api/*` routing and the Singapore region.
+3. In Vercel → Project → Settings → Environment Variables add `DATABASE_URL` (Neon connection string), `AUTH_SECRET` (long random string) and `MAX_UPLOAD_BYTES=4194304` (Vercel's request limit is 4.5 MB).
+4. Deploy. Tables and demo accounts are created on the first request. Every merge to `main` redeploys automatically.
+
 ## 🔑 Demo accounts
 
 Fictional institution `DEMO`. Password `demo1234` for every account (local prototype only).
@@ -198,7 +207,7 @@ cd frontend; npm run build; node test_frontend_contract.mjs
 
 ## 💸 No-spend promise
 
-No paid inference, hosting, cloud database, CI or subscription is needed. Everything runs on a laptop with PostgreSQL. AI output is labelled `source: nlp` (NLTK keyword analysis) or `source: rules` (fallback). Nothing is presented as a trained model.
+No paid inference, CI or subscription is needed. Everything runs on a laptop with PostgreSQL, and the public demo uses only free plans (Vercel Hobby + Neon Free, no card). AI output is labelled `source: nlp` (NLTK keyword analysis) or `source: rules` (fallback). Nothing is presented as a trained model.
 
 ## ⚠️ Limitations
 
