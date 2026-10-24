@@ -24,12 +24,12 @@ Built for **REVA Problem Statement #3** (campus issue reporting and resolution) 
 
 | | Link |
 |---|---|
-| App | https://literacy-saturn-done-licence.trycloudflare.com/app |
-| Fictional college portal (app embedded) | https://literacy-saturn-done-licence.trycloudflare.com/demo-portal |
+| App | https://campusresolve-ai-sigma.vercel.app/app |
+| Fictional college portal (app embedded) | https://campusresolve-ai-sigma.vercel.app/demo-portal |
 
 Log in with any [demo account](#-demo-accounts) (password `demo1234`). Please use made-up data only.
 
-> **Temporary link.** This is a free Cloudflare quick tunnel to Sonia's computer. It works only while her database, backend, frontend and tunnel are running, and the address changes whenever the tunnel restarts. If the link is down, [run it locally](#-run-it-locally) in about five minutes.
+> **Always on.** Hosted free on Vercel with a Neon PostgreSQL database (both in Singapore). It updates automatically whenever `main` changes; see [Deploy](#%EF%B8%8F-deploy-free-vercel--neon). The first request after a quiet spell can take a few seconds while the server wakes up.
 
 ## ✨ What it does
 
