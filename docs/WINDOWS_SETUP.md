@@ -29,13 +29,10 @@ Both friends must accept invitations; a sent invitation does not mean accepted a
 
 1. Accept the GitHub repository invitation using the intended account.
 2. Install/verify Git. Atif verifies Python and local PostgreSQL; Sonia verifies Node/npm. No paid plugin is required for file-based coordination.
-3. Clone `https://github.com/Rohan-Ktksu/CampusResolve-AI.git` and open the cloned folder in the coding assistant.
+3. Clone `https://github.com/Rohan-Ktksu/CampusResolve-AI.git` and open the cloned folder in your editor.
 4. Verify `git config user.name`, `git config user.email`, and authenticated account. Use your own verified identity, not Rohan's.
 5. Atif checks out feature/backend; Sonia feature/frontend. Existing remote branches should be tracked, not recreated from an old unrelated state.
-6. Paste prompts/ATIF_BACKEND.md into Claude Code or prompts/SONIA_FRONTEND.md into Antigravity. Explicitly ask the assistant to read AGENTS.md and its entry-point file before implementation.
-7. Follow docs/coordination/README.md to propose/review the API through ordinary commits. Do not expect the other assistant to wake automatically.
-
-Claude entry point: CLAUDE.md imports AGENTS.md. Antigravity entry point: GEMINI.md directs the assistant to the same shared rules. These match the official instruction mechanisms; no custom agent API service is installed.
+6. Follow docs/coordination/README.md to propose/review the API through ordinary commits.
 
 ## Rohan's Python environment
 
@@ -60,5 +57,3 @@ Sources checked 24 October 2026:
 
 - [GitHub repository creation](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository)
 - [GitHub Free collaborators](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/repository-access-and-collaboration/inviting-collaborators-to-a-personal-repository)
-- [Claude shared instruction import](https://code.claude.com/docs/en/memory)
-- [Antigravity workspace rules](https://antigravity.google/docs/rules/)

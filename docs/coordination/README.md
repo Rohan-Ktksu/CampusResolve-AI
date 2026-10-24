@@ -2,7 +2,7 @@
 
 Contract state starts **SEED / NOT ACCEPTED**. Having contract files does not imply either assistant reviewed them.
 
-Atif is the single canonical API writer. Sonia owns frontend review. Rohan owns AI interfaces. Assistants can settle routine implementation decisions without asking Rohan to relay messages. The root AGENTS.md defines boundaries and no-spend constraints.
+Atif is the single canonical API writer. Sonia owns frontend review. Rohan owns AI interfaces. Teammates settle routine implementation decisions through committed files without asking Rohan to relay messages, within the team's agreed boundaries and no-spend rule.
 
 1. Atif updates docs/API_CONTRACT.md + docs/openapi.json, validates them, records PROPOSED with the OpenAPI SHA-256 in backend.md, commits and pushes feature/backend.
 2. Sonia fetches and inspects Atif's remote contract and backend.md. Record ACCEPTED plus the identical OpenAPI SHA-256 in frontend.md, or CHANGES_REQUESTED with exact field/endpoint examples. Commit/push feature/frontend.
