@@ -96,9 +96,9 @@ NLTK pieces used: `SnowballStemmer`, `RegexpTokenizer`, `edit_distance` and `ngr
 
 ## 🛤 The journey
 
-The whole build happened on **24 October 2026**, by three people working in parallel, each with their own coding assistant, coordinating only through Git.
+The whole build happened on **24 October 2026**, by three people working in parallel and coordinating through Git.
 
-1. **Plan and handoff (Rohan).** Turned REVA Problem #3 into a [master plan](docs/PROJECT_MASTER_PLAN.md) with P0 must-haves first. Set up the repo, ownership rules ([AGENTS.md](AGENTS.md)) and a seed API contract.
+1. **Design the system together (Rohan, Sonia and Atif).** The team designed the system and its pipelines from REVA Problem #3: the complaint lifecycle, roles and permissions, the frontend–backend–database architecture, the AI assistance flow, and must-have features first. Rohan set up the repository and a seed API contract.
 2. **Agree the API without meetings (Atif → Sonia).** Atif proposed contract **v0.2** and published its SHA-256. Sonia reviewed it from Git and recorded `ACCEPTED` with the same hash. The contract was frozen before anyone built against it ([how it works](docs/coordination/README.md)).
 3. **Build in parallel.**
    - **Backend (Atif):** FastAPI + PostgreSQL with all 31 operations: auth, complaints, images, assignment, status workflow with history, feedback and analytics.
@@ -124,13 +124,13 @@ Every release and update, newest first. Full details in [CHANGELOG.md](CHANGELOG
 | **v0.4.0** | 2026-10-24 | Free always-on hosting on Vercel + Neon (Singapore); photos stored in PostgreSQL; safe concurrent start-up; CHANGELOG | [#7](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/7), [#8](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/8), [#9](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/9) | v0.3 (unchanged) | Vercel + Neon |
 | **v0.3.0** | 2026-10-24 | NLTK assistant; Ask & Reports chatbox; common issues; 8 new categories and 3 departments; README rewrite; `main` protected | [#5](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/5) | v0.3 `d726d73c…` (additive) | Cloudflare tunnel |
 | **v0.2.0** | 2026-10-24 | Working prototype: FastAPI + PostgreSQL backend, React frontend, rules-based AI, live demo | [#1](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/1)–[#4](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/4) | v0.2 `d32af66a…` (frozen) | Cloudflare tunnel |
-| **v0.1.0** | 2026-10-24 | Team handoff: master plan, ownership rules, seed API contract | — | v0.1 seed | — |
+| **v0.1.0** | 2026-10-24 | System design and pipelines by the team; repository setup and seed API contract | — | v0.1 seed | — |
 
 ## 👥 Team & contributions
 
 | | Role | Owned area | Highlights |
 |---|---|---|---|
-| **Rohan Sai** ([@Rohan-Ktksu](https://github.com/Rohan-Ktksu)) | Project lead, AI | `backend/app/ai/`, `tests/ai/`, setup & integration | Master plan and team rules; AI ticket triage and reports; v0.3 NLTK chatbox and common issues; free Vercel + Neon deployment; reviews and merges |
+| **Rohan Sai** ([@Rohan-Ktksu](https://github.com/Rohan-Ktksu)) | Project lead, AI | `backend/app/ai/`, `tests/ai/`, setup & integration | System design with Sonia and Atif; AI ticket triage and reports; v0.3 NLTK chatbox and common issues; free Vercel + Neon deployment; reviews and merges |
 | **Atif** ([@Atif-Ur-Rehman](https://github.com/Atif-Ur-Rehman)) | Backend | `backend/` (except `ai/`), API contract | Contract v0.2; FastAPI + PostgreSQL API (31 operations, 17 tests); AI route wiring and fallbacks; README and live demo link |
 | **Sonia** ([@sonia449-prog](https://github.com/sonia449-prog)) | Frontend | `frontend/` | Contract reviews (v0.2, v0.3); Figma wireframe; React UI for all roles; Windows end-to-end verification; hosts the live demo |
 
@@ -209,14 +209,12 @@ cd frontend; npm run build; node test_frontend_contract.mjs
 
 ## 📚 Documents
 
-- [docs/PROJECT_MASTER_PLAN.md](docs/PROJECT_MASTER_PLAN.md): product scope and priorities.
 - [docs/API_CONTRACT.md](docs/API_CONTRACT.md) + [docs/openapi.json](docs/openapi.json): the API contract.
   - **v0.2:** frozen and accepted by backend and frontend.
   - **v0.3:** additive. Accepted by frontend (SHA-256 `d726d73c…`); backend review pending.
 - [backend/app/ai/README.md](backend/app/ai/README.md): how the NLTK assistant works.
 - [docs/coordination/README.md](docs/coordination/README.md): how contract changes are proposed and accepted through Git.
 - [CHANGELOG.md](CHANGELOG.md): every version, what changed and where it runs.
-- [AGENTS.md](AGENTS.md): ownership, branches and rules for every contributor and coding assistant.
 - [docs/WINDOWS_SETUP.md](docs/WINDOWS_SETUP.md): Windows setup for teammates.
 
 ## 💸 No-spend promise
