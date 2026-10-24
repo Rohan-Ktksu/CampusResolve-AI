@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="100%" height="100%">
+  <rect width="960" height="540" fill="#f8fafc" />
+  <rect x="20" y="20" width="920" height="56" rx="8" fill="#0f172a" />
+  <text x="40" y="54" fill="#ffffff" font-family="sans-serif" font-size="18" font-weight="bold">CampusResolve AI — Issue Resolution Workspace</text>
+  <rect x="740" y="34" width="180" height="28" rx="14" fill="#1e293b" />
+  <text x="760" y="53" fill="#93c5fd" font-family="sans-serif" font-size="12">Role: STUDENT / STAFF / ADMIN</text>
+
+  <rect x="20" y="90" width="920" height="40" rx="6" fill="#e2e8f0" />
+  <rect x="28" y="96" width="130" height="28" rx="4" fill="#2563eb" />
+  <text x="46" y="115" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="bold">Operational Queue</text>
+  <text x="180" y="115" fill="#334155" font-family="sans-serif" font-size="12">Report Issue</text>
+  <text x="280" y="115" fill="#334155" font-family="sans-serif" font-size="12">My Complaints</text>
+  <text x="400" y="115" fill="#334155" font-family="sans-serif" font-size="12">Resolution Analytics</text>
+  <text x="545" y="115" fill="#334155" font-family="sans-serif" font-size="12">AI Insights (Optional)</text>
+  <text x="700" y="115" fill="#334155" font-family="sans-serif" font-size="12">Admin Config</text>
+
+  <rect x="20" y="144" width="380" height="376" rx="8" fill="#ffffff" stroke="#cbd5e1" />
+  <text x="36" y="172" fill="#0f172a" font-family="sans-serif" font-size="14" font-weight="bold">Tickets List &amp; Filters</text>
+  <rect x="36" y="186" width="348" height="72" rx="6" fill="#eff6ff" stroke="#93c5fd" />
+  <text x="48" y="208" fill="#1d4ed8" font-family="sans-serif" font-size="12" font-weight="bold">CMP-000042 • Wi-Fi unavailable [HIGH]</text>
+  <text x="48" y="228" fill="#475569" font-family="sans-serif" font-size="11">Block B / Lab 204 • Status: IN_PROGRESS</text>
+  <text x="48" y="246" fill="#64748b" font-family="sans-serif" font-size="11">Dept: IT Services • Assignee: Staff Member</text>
+
+  <rect x="36" y="270" width="348" height="72" rx="6" fill="#ffffff" stroke="#e2e8f0" />
+  <text x="48" y="292" fill="#0f172a" font-family="sans-serif" font-size="12" font-weight="bold">CMP-000041 • Water cooler leaking [NORMAL]</text>
+  <text x="48" y="312" fill="#475569" font-family="sans-serif" font-size="11">Main Academic Block • Status: RESOLVED</text>
+  <text x="48" y="330" fill="#15803d" font-family="sans-serif" font-size="11">Reporter Feedback: 5/5 Stars</text>
+
+  <rect x="416" y="144" width="524" height="376" rx="8" fill="#ffffff" stroke="#cbd5e1" />
+  <text x="436" y="172" fill="#0f172a" font-family="sans-serif" font-size="15" font-weight="bold">Ticket Detail, AI Triage &amp; Audit Timeline</text>
+  <rect x="436" y="186" width="484" height="90" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
+  <text x="450" y="208" fill="#0f172a" font-family="sans-serif" font-size="12" font-weight="bold">AI Triage Suggestion (source: rules • human confirmation required)</text>
+  <text x="450" y="228" fill="#334155" font-family="sans-serif" font-size="11">Suggested Category: Wi-Fi &amp; Network • Suggested Dept: IT • Priority: HIGH</text>
+  <text x="450" y="246" fill="#475569" font-family="sans-serif" font-size="11">Next Step: Inspect Block B Lab 204 access point &amp; verify DHCP lease pool.</text>
+
+  <rect x="436" y="288" width="234" height="105" rx="6" fill="#f8fafc" stroke="#e2e8f0" />
+  <text x="450" y="310" fill="#0f172a" font-family="sans-serif" font-size="12" font-weight="bold">Assignment &amp; Status Controls</text>
+  <text x="450" y="330" fill="#475569" font-family="sans-serif" font-size="11">Dept: [IT Services v]</text>
+  <text x="450" y="350" fill="#475569" font-family="sans-serif" font-size="11">Staff: [Assign Staff v]</text>
+  <text x="450" y="370" fill="#475569" font-family="sans-serif" font-size="11">Status: [IN_PROGRESS -> RESOLVED]</text>
+
+  <rect x="686" y="288" width="234" height="105" rx="6" fill="#f8fafc" stroke="#e2e8f0" />
+  <text x="700" y="310" fill="#0f172a" font-family="sans-serif" font-size="12" font-weight="bold">Authorized Image &amp; Feedback</text>
+  <text x="700" y="330" fill="#475569" font-family="sans-serif" font-size="11">Bearer Blob Fetch (/image)</text>
+  <text x="700" y="350" fill="#475569" font-family="sans-serif" font-size="11">Upload/Retry JPEG/PNG &lt;= 5 MiB</text>
+  <text x="700" y="370" fill="#475569" font-family="sans-serif" font-size="11">Reporter Rating: 1–5 Stars CRUD</text>
+
+  <rect x="436" y="405" width="484" height="98" rx="6" fill="#f8fafc" stroke="#e2e8f0" />
+  <text x="450" y="426" fill="#0f172a" font-family="sans-serif" font-size="12" font-weight="bold">Chronological History (/api/v1/complaints/{id}/history)</text>
+  <text x="450" y="446" fill="#475569" font-family="sans-serif" font-size="11">1. [STATUS] null -&gt; SUBMITTED (Reporter #4)</text>
+  <text x="450" y="464" fill="#475569" font-family="sans-serif" font-size="11">2. [ASSIGNMENT] Routed to Dept #1 (IT Services), Staff #2</text>
+  <text x="450" y="482" fill="#475569" font-family="sans-serif" font-size="11">3. [STATUS] SUBMITTED -&gt; IN_PROGRESS ("Investigating router in Lab 204")</text>
+</svg>
