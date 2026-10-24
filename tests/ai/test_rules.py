@@ -172,6 +172,46 @@ class AdminReportTests(unittest.TestCase):
         data["by_location"].reverse()
         self.assertEqual(expected, generate_admin_report(data))
 
+    def test_single_ticket_uses_singular_wording_without_claiming_recurrence(self):
+        data = aggregates()
+        data.update(sample_size=1, unresolved=1, high_priority_unresolved=1, resolved_count=0,
+                    avg_resolution_hours=None,
+                    by_category=[{"category_id": 1, "category": "Wi-Fi / Network", "count": 1}],
+                    by_location=[{"category_id": 1, "category": "Wi-Fi / Network", "location": "Block B", "count": 1}])
+        report = generate_admin_report(data)
+        text = json.dumps(report)
+        self.assertTrue(report["summary"].startswith("1 reported ticket in"))
+        self.assertNotIn("1 reported tickets", text)
+        self.assertNotIn("1 high-priority reports", text)
+        self.assertNotIn("recurring", report["recommendations"][1]["title"])
+        self.assertIn("1 of 1 unresolved report is", report["recommendations"][0]["evidence"])
+
+    def test_uncategorized_tie_does_not_replace_a_known_service_issue(self):
+        data = aggregates()
+        data.update(sample_size=2, unresolved=2, high_priority_unresolved=0, resolved_count=0,
+                    avg_resolution_hours=None,
+                    by_category=[{"category_id": None, "category": "Uncategorized", "count": 1},
+                                 {"category_id": 1, "category": "Wi-Fi / Network", "count": 1}],
+                    by_location=[{"category_id": None, "category": "Uncategorized", "location": "Block B", "count": 1},
+                                 {"category_id": 1, "category": "Wi-Fi / Network", "location": "Block B", "count": 1}])
+        report = generate_admin_report(data)
+        self.assertIn("Wi-Fi / Network", report["recommendations"][0]["title"])
+        self.assertIn("1 ticket still needs category review", report["summary"])
+        self.assertIn("1 of 2", report["recommendations"][0]["evidence"])
+        self.assertNotIn("recurring Uncategorized", json.dumps(report))
+
+    def test_only_uncategorized_reports_request_classification_first(self):
+        data = aggregates()
+        data.update(sample_size=2, unresolved=2, high_priority_unresolved=0, resolved_count=0,
+                    avg_resolution_hours=None,
+                    by_category=[{"category_id": None, "category": "Uncategorized", "count": 2}],
+                    by_location=[{"category_id": None, "category": "Uncategorized", "location": "Block B", "count": 2}])
+        report = generate_admin_report(data)
+        self.assertEqual("Categorize unclassified reports", report["recommendations"][0]["title"])
+        self.assertIn("2 tickets still need category review", report["summary"])
+        self.assertNotIn("Among categorized issues", report["summary"])
+        self.assertLessEqual(len(report["recommendations"]), 3)
+
     def test_inconsistent_or_invalid_metrics_are_not_explained_as_facts(self):
         for field, value in [("sample_size", -1), ("sample_size", True), ("unresolved", 30),
                              ("high_priority_unresolved", 9), ("avg_resolution_hours", float("nan")),
