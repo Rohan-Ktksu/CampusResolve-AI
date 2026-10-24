@@ -62,14 +62,18 @@ def init_db():
                                   ON CONFLICT (code) DO NOTHING RETURNING id""").fetchone()
         inst = conn.execute("SELECT id FROM institutions WHERE code = 'DEMO'").fetchone()['id']
         # Config is ensured on every start so seed additions (e.g. Transport) reach existing demo DBs; tickets are never touched.
+        # WHERE NOT EXISTS rather than ON CONFLICT, so restarts do not consume serial IDs.
         for name in DEPARTMENTS:
-            conn.execute('INSERT INTO departments (institution_id, name) VALUES (%s, %s) ON CONFLICT DO NOTHING', (inst, name))
+            conn.execute('''INSERT INTO departments (institution_id, name) SELECT %(i)s, %(n)s
+                            WHERE NOT EXISTS (SELECT 1 FROM departments WHERE institution_id = %(i)s AND name = %(n)s)''', {'i': inst, 'n': name})
         dept = {r['name']: r['id'] for r in conn.execute('SELECT id, name FROM departments WHERE institution_id = %s', (inst,))}
         for name, d in CATEGORIES:
-            conn.execute('INSERT INTO categories (institution_id, name, default_department_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING',
-                         (inst, name, dept.get(d)))
+            conn.execute('''INSERT INTO categories (institution_id, name, default_department_id) SELECT %(i)s, %(n)s, %(d)s
+                            WHERE NOT EXISTS (SELECT 1 FROM categories WHERE institution_id = %(i)s AND name = %(n)s)''',
+                         {'i': inst, 'n': name, 'd': dept.get(d)})
         for name in LOCATIONS:
-            conn.execute('INSERT INTO locations (institution_id, name) VALUES (%s, %s) ON CONFLICT DO NOTHING', (inst, name))
+            conn.execute('''INSERT INTO locations (institution_id, name) SELECT %(i)s, %(n)s
+                            WHERE NOT EXISTS (SELECT 1 FROM locations WHERE institution_id = %(i)s AND name = %(n)s)''', {'i': inst, 'n': name})
         if not created:
             return
         for email, name, role, d in USERS:
