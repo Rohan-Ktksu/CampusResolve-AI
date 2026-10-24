@@ -25,6 +25,14 @@ Branch: feature/frontend
 - `frontend/src/components/TicketWorkspace.jsx`: Ticket detail, reporter edit while `SUBMITTED`, JPEG/PNG upload (`<= 5 MiB`) + retry flow, per-ticket AI triage panel (`ADMIN`/`COORDINATOR`), department/staff assignment (`GET /api/v1/staff?department_id=...`), workflow status transitions with verification and required outcome notes, reporter feedback CRUD (`1–5` rating on `RESOLVED` tickets), and chronological history timeline.
 - `frontend/src/components/AdminDashboard.jsx`: Single Admin Dashboard with Operational Inbox, Resolution Analytics (`GET /api/v1/dashboard/stats` with `null` average handling), Optional AI Insights cohort view & on-demand report, and `ADMIN` category/department configuration CRUD.
 
-## Next
+## Tests actually run by Sonia (2026-10-24, Windows, Node v24.22.1, npm 11.19.1)
 
-- Complete `npm run build` verification and connect live frontend submission to Atif's PostgreSQL backend to verify end-to-end `submit -> assign -> update status -> resolve -> feedback -> analytics`.
+- `node -e "const {execSync}=require('child_process'); const crypto=require('crypto'); const buf=execSync('git show origin/feature/backend:docs/openapi.json'); console.log(crypto.createHash('sha256').update(buf).digest('hex'));"` → `d32af66a4cab39db4c5e56f7dd5e4f34ff70b10a21cac714eb6d756f5225b62c` (matches Atif's proposed hash).
+- `npm --prefix frontend install` → 67 packages audited, 0 vulnerabilities.
+- `npm --prefix frontend run build` → `vite v6.4.5 building for production... ✓ 30 modules transformed. dist/index.html, dist/assets/*.css, dist/assets/*.js ✓ built in 1.77s`.
+- `npm --prefix frontend test` (`node frontend/test_frontend_contract.mjs`) → `"Frontend verification passed: 17 endpoint groups, v0.2 contract alignment, and production dist/ bundle verified."`
+
+## Remaining gaps / next steps
+
+- Live browser/API round-trip against a locally running PostgreSQL + FastAPI backend (`http://127.0.0.1:8000`) to verify end-to-end `submit -> assign -> update status -> resolve -> feedback -> analytics` on the integration machine.
+
