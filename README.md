@@ -1,233 +1,134 @@
-<div align="center">
+# CampusResolve AI
 
-# 🏫 CampusResolve AI
+CampusResolve AI is a campus issue-reporting and resolution prototype built by **Rohan Sai, Atif, and Sonia** for **REVA Weekend Hackathon Problem Statement #3**. Students and staff report issues with optional photos, track tickets through departmental resolution, and give feedback. Administrators can measure resolution times and investigate recurring complaints through the same dashboard.
 
-**Report a campus problem in seconds. Route it to the right team. Resolve it, measure it, learn from it.**
+[Demo app](https://campusresolve-ai-sigma.vercel.app/app) · [Embedded portal](https://campusresolve-ai-sigma.vercel.app/demo-portal) · [Project progress](#project-progress) · [Local setup](#run-locally) · [License](#license)
 
-![Status](https://img.shields.io/badge/status-working%20prototype-2ea44f)
-![Backend](https://img.shields.io/badge/backend-FastAPI%20%2B%20PostgreSQL-009688)
-![Frontend](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB)
-![AI](https://img.shields.io/badge/AI-local%20NLTK%2C%20no%20paid%20APIs-8A2BE2)
-![Cost](https://img.shields.io/badge/running%20cost-%E2%82%B90-brightgreen)
+## Try the demo
 
-[**▶ Live demo**](#-live-demo) · [Versions](#-versions) · [Features](#-what-it-does) · [How it works](#-how-it-works) · [Journey](#-the-journey) · [Team](#-team--contributions) · [Run it locally](#-run-it-locally)
+Open the [demo app](https://campusresolve-ai-sigma.vercel.app/app) or try the same workflow inside the [fictional college portal](https://campusresolve-ai-sigma.vercel.app/demo-portal). The public demo uses Vercel and Neon PostgreSQL. It runs on shared synthetic data, so use fictional reports and images.
 
-</div>
+| Role | Demo email |
+| --- | --- |
+| Student | `student@demo.edu` |
+| Department staff | `it.staff@demo.edu` or `facilities.staff@demo.edu` |
+| Coordinator | `coordinator@demo.edu` |
+| Administrator | `admin@demo.edu` |
 
----
+Every demo account uses password `demo1234`. The login screen offers quick-fill buttons. Additional student accounts run from `student2@demo.edu` through `student8@demo.edu`.
 
-Built for **REVA Problem Statement #3** (campus issue reporting and resolution) by **Rohan Sai**, **Atif** and **Sonia**. Students and staff report problems with a description and optional photo and get a ticket number. Departments work through their queue, reporters rate the outcome, and admins see real resolution analytics. A local NLTK assistant suggests where each ticket should go, answers admins' questions in plain English and spots the issues that keep coming back.
+As a student, open **My Complaints** to see the reporting workflow. As an admin, open **Ask & Reports** and try “average resolution time by department.” The demo app, portal, admin reporting API, and student access restriction were checked on **21 November 2026**.
 
-> Working title: *CampusResolve AI*. *SunoSetu* has been suggested as a future name; no rename has been decided.
+## What’s implemented
 
-## ▶ Live demo
+| Area | Capability |
+| --- | --- |
+| Reporting | Students and staff submit a description, campus location, optional category, and an optional JPEG or PNG. The app derives a unique `CMP-…` ticket number from the PostgreSQL ticket ID. Reporters can edit submitted tickets and retry failed uploads. |
+| Routing and access | Configured categories route tickets to departments. Uncategorized tickets enter review. Admins and coordinators can assign a department and an eligible staff member. FastAPI enforces role, institution, and ticket access, including for images. |
+| Resolution and feedback | Tickets progress through **Submitted → In Progress → Resolved**, with **Rejected** available from either open state. The UI asks staff to confirm verification before resolution. Resolved and rejected tickets require an outcome note. The original reporter can rate and comment on a resolved ticket. Assignment and status changes appear in the ticket history. |
+| Administration | Administrators manage categories and departments and can archive tickets. The dashboard shows counts by status and category and mean time from creation to resolution. Archived tickets are excluded from analytics. |
+| Assisted triage | NLTK suggests a category, priority, department, and next steps using the institution’s configured options. Authorized users review suggestions before applying changes. |
+| Ask & Reports | English questions about ticket counts, lists, and mean resolution time produce report tables with editable filters, grouping, and CSV export. The backend converts questions into supported filter plans and uses parameterized queries. |
+| AI Insights | Date-range reports highlight recurring issues, location hotspots, and high-priority open tickets. Recommendations cite the underlying counts. Common-issue groups use shared words and phrases and report distinct reporter accounts. |
+| Embedded view | `/app?embed=1` provides a compact layout. The fictional `/demo-portal` embeds it and uses the same API and database. |
 
-| | Link |
-|---|---|
-| App | https://campusresolve-ai-sigma.vercel.app/app |
-| Fictional college portal (app embedded) | https://campusresolve-ai-sigma.vercel.app/demo-portal |
+New installations seed **15 categories** and **8 departments**, covering areas such as IT, Facilities, Transport, Food Services, Hostel Office, and Campus Security.
 
-Log in with any [demo account](#-demo-accounts) (password `demo1234`). Please use made-up data only.
+## Screenshots
 
-> **Always on.** Hosted free on Vercel with a Neon PostgreSQL database (both in Singapore). It updates automatically whenever `main` changes; see [Deploy](#-deploy-free-vercel--neon). The first request after a quiet spell can take a few seconds while the server wakes up.
+| Ask & Reports | Common issues |
+| --- | --- |
+| ![Admin report with filters and a results table](docs/screenshots/08_admin_ask_and_reports.png) | ![Dashboard grouping recurring issues by shared wording](docs/screenshots/09_admin_common_issues.png) |
 
-## ✨ What it does
+[Student submission with a photo](frontend/screenshots/01_student_submitted_with_image.png) · [Ticket triage](frontend/screenshots/02_admin_ai_suggestions_no_mutation.png) · [Resolution and history](frontend/screenshots/04_staff_resolved_with_history.png) · [Reporter feedback](frontend/screenshots/05_student_feedback_submitted.png) · [Resolution analytics](frontend/screenshots/06_admin_resolution_analytics.png) · [AI Insights](frontend/screenshots/07_admin_ai_insights_and_report.png)
 
-**For students and staff**
-- 📝 Report an issue with a title, description, location, category and an optional JPEG/PNG photo (checked server-side, max 5 MB).
-- 🎫 Get a unique ticket number such as `CMP-000042` and follow its status and history.
-- ⭐ Rate the resolution and leave feedback once the ticket is closed.
+## Project progress
 
-**For department staff**
-- 📥 A queue of their department's tickets.
-- 🔄 Move tickets through **Submitted → In Progress → Resolved / Rejected**, with a required outcome note when closing.
+| Milestone | What shipped |
+| --- | --- |
+| v0.1.0 · 24 Oct 2026 | The team designed the ticket lifecycle, roles, and API. Rohan set up the repository and seed contract. |
+| v0.2.0 · 24 Oct 2026 | Atif’s FastAPI/PostgreSQL backend, Rohan’s rules-based assistance, and Sonia’s React UI came together in the working prototype. The team verified the full ticket-to-feedback flow and shared the demo through a temporary Cloudflare tunnel. [PRs #1](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/1), [#2](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/2), [#3](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/3), [#4](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/4) |
+| v0.3.0 · 24 Oct 2026 | Added in-process NLTK, Ask & Reports, common-issue grouping, eight categories, and three departments. API contract v0.3 added the reporting and common-issues endpoints. [PR #5](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/5) |
+| v0.4.0 · 24 Oct 2026 | Moved the public demo to Vercel and Neon. New ticket photos moved into PostgreSQL, and schema setup was made safe across concurrent cold starts. [PRs #7](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/7), [#8](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/8), [#9](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/9) |
+| v0.4.1 · 24 Oct 2026 | Added a starter dataset of 41 fictional complaints across 14 categories, six more student accounts, and more focused common-issue matching. [PR #10](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/10) |
+| Repository updates · Oct–Nov 2026 | Cleaned up internal documentation and adopted GNU GPL v3.0 on 10 November. [PRs #11](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/11), [#12](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/12), [#13](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/13) |
 
-**For admins and coordinators**
-- 🧭 **AI triage:** suggests a category, department, priority and next steps for each ticket. Suggestions never change the ticket; a person confirms them.
-- 📊 **Resolution analytics:** ticket counts by status and category, and mean resolution time computed from real timestamps.
-- 💬 **Ask & Reports (chatbox):** ask in plain English, e.g. *"unresolved food complaints in Hostel 1 last month"* or *"average resolution time by department"*. You get a sortable, filterable table with CSV export, a summary, evidence-based suggestions and the common issues among the matching tickets. Each filter appears as a chip you can remove to re-run the report.
-- 🔍 **Common issues:** complaint descriptions are grouped by shared wording, so you can see *what* keeps happening, *how many times* it was reported, *how many students* reported it, where, and what to do next.
-- 📑 **AI Insights report:** an on-demand report for any date range, with recommendations that cite the actual counts.
-- ⚙️ **Configuration:** manage departments and categories. 15 categories are seeded, including Wi-Fi, Plumbing, Electrical, Infrastructure, Food / Canteen, Hostel, Safety / Security, Housekeeping, Library, Academics, Sports and Transport.
+The latest application milestone is **v0.4.1**. The active [OpenAPI contract](docs/openapi.json) is **v0.3.0** with **33 operations**. See the [changelog](CHANGELOG.md) and [frontend contract review](docs/coordination/frontend.md).
 
-**Embeddable:** `/app?embed=1` is a compact view of the same app, and `/demo-portal` shows it inside a fictional college portal, sharing the same login, API and database.
-
-## 📸 Screenshots
-
-| Ask & Reports chatbox | Common issues on the dashboard |
-|---|---|
-| ![Ask & Reports](docs/screenshots/08_admin_ask_and_reports.png) | ![Common issues](docs/screenshots/09_admin_common_issues.png) |
-
-| Student report with photo | AI triage (suggestions only) | Resolution analytics |
-|---|---|---|
-| ![Student submits](frontend/screenshots/01_student_submitted_with_image.png) | ![AI suggestions](frontend/screenshots/02_admin_ai_suggestions_no_mutation.png) | ![Analytics](frontend/screenshots/06_admin_resolution_analytics.png) |
-
-More: [assignment](frontend/screenshots/03_admin_assigned_it_staff.png) · [resolved with history](frontend/screenshots/04_staff_resolved_with_history.png) · [feedback](frontend/screenshots/05_student_feedback_submitted.png) · [AI Insights](frontend/screenshots/07_admin_ai_insights_and_report.png) · [report with common issues](docs/screenshots/10_admin_report_with_common_issues.png). All screenshots use synthetic data.
-
-## 🧠 How it works
+## Architecture
 
 ```mermaid
 flowchart LR
-    U["Browser<br/>React + Vite<br/>/app · /app?embed=1 · /demo-portal"] -- "/api/v1 + login token" --> B["FastAPI backend<br/>roles · workflow · validation"]
-    B -- "parameterized SQL" --> D[("PostgreSQL")]
-    B -- "config + ticket text" --> A["backend/app/ai<br/>local NLTK analysis"]
-    A -- "suggestions (validated,<br/>with fallback)" --> B
-    B --> I["uploads/<br/>images served only<br/>to authorized users"]
+    UI["React + Vite"] -->|"Same-origin /api/v1"| API["FastAPI"]
+    API --> DB[("PostgreSQL<br/>Tickets, history, feedback, photos")]
+    API --> NLP["In-process NLTK + rules"]
+    Portal["Fictional college portal"] -->|"iframe /app?embed=1"| UI
 ```
 
-- **One backend, one database.** The AI code runs inside the backend; there is no separate AI server and no external API call.
-- **Permissions on the server.** Every request re-checks the user's role and institution. Students see their own tickets, staff see their department's queue, admins and coordinators see everything.
-- **AI that can't break the workflow.** Every AI result is validated against the API models and the institution's real category/department IDs. If anything fails, the route returns a clearly labelled fallback (`source: rules`) instead of an error.
+The public deployment serves the React build on Vercel, runs FastAPI through `api/index.py`, and stores application data on Neon. The Vercel function region is Singapore. New uploads are stored in PostgreSQL and served through authenticated ticket endpoints. The default upload limit is **5 MiB locally** and **4 MiB on the hosted demo**. See the [deployment config](vercel.json) and [API contract](docs/API_CONTRACT.md).
 
-**How the chatbox answers a question**
+The assistant runs inside FastAPI and uses `source: nlp` for NLTK analysis and `source: rules` for fallback. It requires no model downloads, model API keys, or paid inference. See the [assistance implementation](backend/app/ai/README.md).
 
-```
-"how many food complaints in Hostel 1 were unresolved last month?"
-  → NLTK parsing: dates · named departments · locations · categories (stemming + typo tolerance)
-                  · status · priority · grouping · metric
-  → allow-listed plan { count · Food / Canteen · Hostel 1 · open · 1–30 Sep }   (text never becomes SQL)
-  → parameterized queries → table + totals + matching tickets
-  → summary + up to 4 evidence-based suggestions + common issues → report panel
-```
+To reproduce the hosted demo, use the repository root as the Vercel project and provide a Neon PostgreSQL `DATABASE_URL`, a private `AUTH_SECRET`, and `MAX_UPLOAD_BYTES=4194304` in the deployment environment. The schema and demo accounts initialize on first use. Load the sample complaints separately with the seed script.
 
-**How common issues are found:** each ticket's words are stemmed with NLTK ("leaking" → "leak"), filler words and location names are dropped, and the word or two-word phrase shared by the most tickets becomes an issue. Those tickets are set aside and the search repeats. Each issue reports times reported, distinct student and staff reporters, how many are still open, where, and suggested next steps. Complaint text is analysed but never quoted.
+## Run locally
 
-NLTK pieces used: `SnowballStemmer`, `RegexpTokenizer`, `edit_distance` and `ngrams`. All of them work after `pip install`, with no `nltk.download`. Details: [backend/app/ai/README.md](backend/app/ai/README.md).
+You’ll need Git, Python 3.12+, Node.js with npm, and PostgreSQL 14+.
 
-## 🛤 The journey
-
-The whole build happened on **24 October 2026**, by three people working in parallel and coordinating through Git.
-
-1. **Design the system together (Rohan, Sonia and Atif).** The team designed the system and its pipelines from REVA Problem #3: the complaint lifecycle, roles and permissions, the frontend–backend–database architecture, the AI assistance flow, and must-have features first. Rohan set up the repository and a seed API contract.
-2. **Agree the API without meetings (Atif → Sonia).** Atif proposed contract **v0.2** and published its SHA-256. Sonia reviewed it from Git and recorded `ACCEPTED` with the same hash. The contract was frozen before anyone built against it ([how it works](docs/coordination/README.md)).
-3. **Build in parallel.**
-   - **Backend (Atif):** FastAPI + PostgreSQL with all 31 operations: auth, complaints, images, assignment, status workflow with history, feedback and analytics.
-   - **Frontend (Sonia):** React screens for every role, the admin dashboard, the embedded view and the portal.
-   - **AI (Rohan):** local ticket suggestions and evidence-backed admin reports, plugged into Atif's routes with a validated fallback.
-4. **Integrate and prove it.** A real frontend request created a PostgreSQL ticket. Sonia ran the full flow (submit → assign → resolve → feedback → analytics) on Windows and captured screenshots. Atif verified the AI functions on the live endpoints. PRs #1, #2 and #3 were merged.
-5. **Go live.** Atif rewrote the README and published the temporary Cloudflare link (PR #4).
-6. **Make the AI genuinely useful (v0.3).**
-   - Moved from exact keyword matching to NLTK.
-   - Added the **Ask & Reports chatbox**, **common issues** and 8 more categories (PR #5).
-   - Sonia accepted contract v0.3 with a matching hash and verified it through the live link.
-7. **Lock it down.** `main` is now protected: pull requests with one approval, no force-pushes, no deletion.
-
-**Rules we kept throughout:** no paid APIs, hosting or CI; synthetic data only; nothing presented as a trained model; every test result recorded honestly in [`docs/coordination/`](docs/coordination/).
-
-## 🗂 Versions
-
-Every release and update, newest first. Full details in [CHANGELOG.md](CHANGELOG.md).
-
-| Version | Date | What changed | PRs | API contract | Runs on |
-|---|---|---|---|---|---|
-| **v0.4.1** | 2026-10-24 | 41 synthetic demo complaints across 14 categories (resolved, in progress, rejected, with feedback); 6 more demo student accounts; common issues ignore state words like "not" or "broken" | this update | v0.3 (unchanged) | Vercel + Neon |
-| **v0.4.0** | 2026-10-24 | Free always-on hosting on Vercel + Neon (Singapore); photos stored in PostgreSQL; safe concurrent start-up; CHANGELOG | [#7](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/7), [#8](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/8), [#9](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/9) | v0.3 (unchanged) | Vercel + Neon |
-| **v0.3.0** | 2026-10-24 | NLTK assistant; Ask & Reports chatbox; common issues; 8 new categories and 3 departments; README rewrite; `main` protected | [#5](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/5) | v0.3 `d726d73c…` (additive) | Cloudflare tunnel |
-| **v0.2.0** | 2026-10-24 | Working prototype: FastAPI + PostgreSQL backend, React frontend, rules-based AI, live demo | [#1](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/1)–[#4](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/4) | v0.2 `d32af66a…` (frozen) | Cloudflare tunnel |
-| **v0.1.0** | 2026-10-24 | System design and pipelines by the team; repository setup and seed API contract | — | v0.1 seed | — |
-
-## 👥 Team & contributions
-
-| | Role | Owned area | Highlights |
-|---|---|---|---|
-| **Rohan Sai** ([@Rohan-Ktksu](https://github.com/Rohan-Ktksu)) | Project lead, AI | `backend/app/ai/`, `tests/ai/`, setup & integration | System design with Sonia and Atif; AI ticket triage and reports; v0.3 NLTK chatbox and common issues; free Vercel + Neon deployment; reviews and merges |
-| **Atif** ([@Atif-Ur-Rehman](https://github.com/Atif-Ur-Rehman)) | Backend | `backend/` (except `ai/`), API contract | Contract v0.2; FastAPI + PostgreSQL API (31 operations, 17 tests); AI route wiring and fallbacks; README and live demo link |
-| **Sonia** ([@sonia449-prog](https://github.com/sonia449-prog)) | Frontend | `frontend/` | Contract reviews (v0.2, v0.3); Figma wireframe; React UI for all roles; Windows end-to-end verification; hosts the live demo |
-
-| PR | What | By |
-|---|---|---|
-| [#1](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/1) | Backend: FastAPI + PostgreSQL complaint lifecycle (contract v0.2) | Atif |
-| [#2](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/2) | AI assistance: ticket recommendations and admin reports | Rohan |
-| [#3](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/3) | Frontend: React workflow, admin dashboard, E2E verification | Sonia |
-| [#4](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/4) | README for the working prototype + live demo link | Atif |
-| [#5](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/5) | Admin chatbox, common issues, NLTK analysis (contract v0.3) | Rohan |
-| [#7](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/7), [#8](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/8), [#9](https://github.com/Rohan-Ktksu/CampusResolve-AI/pull/9) | Free Vercel + Neon deployment, CHANGELOG, permanent live link | Rohan |
-
-Each person's commands, results and known gaps are in [`docs/coordination/`](docs/coordination/) ([backend](docs/coordination/backend.md) · [frontend](docs/coordination/frontend.md) · [AI](docs/coordination/ai.md)).
-
-## 🚀 Run it locally
-
-Requires Python 3.12+, Node.js/npm and PostgreSQL 14+. Everything is free and local.
-
-1. **Database.** Create user `campusresolve` with databases `campusresolve` and `campusresolve_test`. Exact Windows (`psql`) and podman/docker commands are in [backend/README.md](backend/README.md).
-2. **Config.** Copy `.env.example` to `.env` and set `DATABASE_URL` and a random `AUTH_SECRET`. Never commit `.env`.
-3. **Backend** (http://127.0.0.1:8000, API docs at `/docs`). Tables and demo data are created on first start:
+1. Clone the repository and install dependencies from its root. These commands use PowerShell.
 
    ```powershell
+   git clone https://github.com/Rohan-Ktksu/CampusResolve-AI.git
+   cd CampusResolve-AI
    python -m venv .venv
-   .\.venv\Scripts\Activate.ps1          # Linux/macOS: source .venv/bin/activate
-   pip install -r backend/requirements.txt
-   cd backend
-   uvicorn app.main:app --port 8000
+   .\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
+   npm --prefix frontend ci
+   if (!(Test-Path .env)) { Copy-Item .env.example .env }
    ```
 
-4. **Frontend** (http://127.0.0.1:5173; the dev server forwards `/api` to the backend):
+2. Create the local `campusresolve` PostgreSQL database and user. In the root `.env`, set `DATABASE_URL` to match your local PostgreSQL credentials and set `AUTH_SECRET` to a private random value. Database setup examples are in the [backend README](backend/README.md).
+
+3. Start FastAPI from the repository root. The backend creates its schema and fictional demo accounts at startup.
 
    ```powershell
-   cd frontend
-   npm install
-   npm run dev
+   .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
    ```
 
-   Then open `/app`, the embedded view `/app?embed=1`, or the portal `/demo-portal`.
+4. Start the frontend from the repository root in a second terminal.
 
-## ☁️ Deploy (free: Vercel + Neon)
+   ```powershell
+   npm --prefix frontend run dev -- --host 127.0.0.1 --strictPort
+   ```
 
-The repo deploys as one Vercel project: the React app as static files and the FastAPI backend as a Python function (`api/index.py`), with PostgreSQL on Neon. Photos are stored in the database because serverless functions keep no files.
+Open the [local app](http://127.0.0.1:5173/app), [local portal](http://127.0.0.1:5173/demo-portal), or [FastAPI docs](http://127.0.0.1:8000/docs). To populate the local dashboard with sample complaints, run `.\.venv\Scripts\python.exe scripts/seed_demo_data.py` while both servers are running.
 
-1. Create a free Neon project (Singapore region) and copy its connection string.
-2. Import the GitHub repo into Vercel. `vercel.json` sets the build, the `/api/*` routing and the Singapore region.
-3. In Vercel → Project → Settings → Environment Variables add `DATABASE_URL` (Neon connection string), `AUTH_SECRET` (long random string) and `MAX_UPLOAD_BYTES=4194304` (Vercel's request limit is 4.5 MB).
-4. Deploy. Tables and demo accounts are created on the first request. Every merge to `main` redeploys automatically.
+### Verification
 
-## 🔑 Demo accounts
-
-Fictional institution `DEMO`. Password `demo1234` for every account (local prototype only).
-
-| Email | Role |
-|---|---|
-| student@demo.edu, student2@demo.edu, student3@demo.edu … student8@demo.edu | Student |
-| it.staff@demo.edu | Staff, IT |
-| facilities.staff@demo.edu | Staff, Facilities |
-| coordinator@demo.edu | Coordinator |
-| admin@demo.edu | Admin |
-
-**Departments:** IT, Facilities, Housekeeping, Academics, Transport, Food Services, Hostel Office, Campus Security.
-
-**Categories:** Wi-Fi / Network, Classroom Equipment, Electrical, Plumbing, Cleanliness, Transport, Infrastructure, Food / Canteen, Hostel, Safety / Security, Housekeeping, Library, Academics, Sports, Other.
-
-Each category routes to its department; uncategorized tickets go to admin review.
-
-## 🧪 Tests
+Run these checks from the repository root after installing dependencies.
 
 ```powershell
-python scripts/check_contract.py                 # API contract sanity check
-python -m unittest discover -s tests/ai          # NLTK triage, chatbox parser, common issues
-cd backend; python -m pytest -q                  # API + AI integration on campusresolve_test (wiped each run)
-cd frontend; npm run build; node test_frontend_contract.mjs
+.\.venv\Scripts\python.exe scripts/check_contract.py
+.\.venv\Scripts\python.exe -m unittest discover -s tests/ai
+npm --prefix frontend run build
+npm --prefix frontend test
 ```
 
-## 📚 Documents
+For the [PostgreSQL integration suite](backend/README.md#3-test), use a disposable `campusresolve_test` database. The test fixture drops and recreates its public schema. The recorded v0.3 verification covered 33 API operations, 39 AI unit tests, 22 PostgreSQL integration tests, the frontend build, and browser workflows. See the [frontend verification](docs/coordination/frontend.md) and [AI test evidence](docs/coordination/ai.md).
 
-- [docs/API_CONTRACT.md](docs/API_CONTRACT.md) + [docs/openapi.json](docs/openapi.json): the API contract.
-  - **v0.2:** frozen and accepted by backend and frontend.
-  - **v0.3:** additive. Accepted by frontend (SHA-256 `d726d73c…`); backend review pending.
-- [backend/app/ai/README.md](backend/app/ai/README.md): how the NLTK assistant works.
-- [docs/coordination/README.md](docs/coordination/README.md): how contract changes are proposed and accepted through Git.
-- [CHANGELOG.md](CHANGELOG.md): every version, what changed and where it runs.
-- [docs/WINDOWS_SETUP.md](docs/WINDOWS_SETUP.md): Windows setup for teammates.
+## Team
 
-## 💸 No-spend promise
+| Contributor | Work |
+| --- | --- |
+| [Rohan Sai](https://github.com/Rohan-Ktksu) | Project lead, repository setup, ticket triage, Ask & Reports, common issues, integration, and deployment |
+| [Atif](https://github.com/Atif-Ur-Rehman) | FastAPI, PostgreSQL, API contract, permissions, ticket lifecycle, analytics, and assistance route integration |
+| [Sonia](https://github.com/sonia449-prog) | Figma wireframe, React screens, admin dashboard, embedded portal, contract review, and browser verification |
 
-No paid inference, CI or subscription is needed. Everything runs on a laptop with PostgreSQL, and the public demo uses only free plans (Vercel Hobby + Neon Free, no card). AI output is labelled `source: nlp` (NLTK keyword analysis) or `source: rules` (fallback). Nothing is presented as a trained model.
+The team designed the system together. [Original REVA problem statements](reference/REVA_Problem_Statements_Source.docx) · [Frontend wireframe](frontend/FIGMA_WIREFRAME.md)
 
-## ⚠️ Limitations
+## Prototype scope
 
-- **Prototype only:** one fictional institution, seeded logins, no SSO or self-registration. Not production-hardened; tokens live in browser sessionStorage.
-- **Chatbox scope:** it understands English questions about counts, lists, resolution time, grouping, filters and dates. Anything else falls back to overall totals with a warning.
-- **Common issues match words, not meaning:** two reports of one problem worded differently can appear as separate issues. Reporter counts are distinct accounts, not verified people.
-- **No real college integration:** no official college affiliation or ERP/SSO integration is claimed.
+The demo has one fictional institution with seeded roles. Real campus integration, SSO, self-service enrollment, and production hardening remain outside the prototype. English report queries cover a fixed set of metrics and filters. Shared wording drives common-issue groups, so reports of the same issue can land in separate groups.
 
-## 🙏 Attribution
+## License
 
-Repository ownership and baseline setup belong to Rohan's verified Git identity. Atif and Sonia keep authorship of their work. The source brief is in [`reference/`](reference/).
+CampusResolve AI is licensed under the [GNU General Public License v3.0](LICENSE).
